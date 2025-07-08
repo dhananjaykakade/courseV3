@@ -141,7 +141,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       console.log("Marking milestone complete:", milestoneId)
 
       const response = await fetch(`/api/courses/${course.id}/progress`, {
-        method: "PUT",
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
