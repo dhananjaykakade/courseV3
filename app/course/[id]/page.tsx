@@ -1,313 +1,114 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText, Download, CheckCircle, Lock, ArrowRight, Play, Star } from "lucide-react"
-import { VideoPlayer } from "@/components/video-player"
+import { CheckCircle, Circle, Clock, DollarSign, Play, FileText, Download } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
-import { useRouter } from "next/navigation"
+import { VideoPlayer } from "@/components/video-player"
 
-function MilestoneBlock({
-  milestone,
-  isAccessible,
-  onMilestoneComplete,
-  milestoneIndex,
-  courseId,
-}: {
-  milestone: any
-  isAccessible: boolean
-  onMilestoneComplete: (index: number) => void
-  milestoneIndex: number
-  courseId: string
-}) {
-  const [isCompleted, setIsCompleted] = useState(milestone.isCompleted)
-  const [videoProgress, setVideoProgress] = useState<{ [key: number]: number }>({})
-  const [completedVideos, setCompletedVideos] = useState<Set<number>>(new Set())
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
-
-  const handleMarkComplete = async () => {
-    if (isMarkingComplete) return
-
-    setIsMarkingComplete(true)
-    try {
-      const token = localStorage.getItem("authToken")
-      if (!token) {
-        alert("Please log in again")
-        return
-      }
-
-      const response = await fetch(`/api/courses/${courseId}/progress`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ milestoneId: milestone.id }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setIsCompleted(true)
-        onMilestoneComplete(milestoneIndex)
-      } else {
-        alert(data.message || "Failed to mark milestone as complete")
-      }
-    } catch (error) {
-      console.error("Error marking milestone complete:", error)
-      alert("Failed to mark milestone as complete")
-    } finally {
-      setIsMarkingComplete(false)
-    }
-  }
-
-  const handleVideoComplete = (videoIndex: number) => {
-    console.log(`Video ${videoIndex} completed in milestone ${milestoneIndex}`)
-    setCompletedVideos((prev) => new Set([...prev, videoIndex]))
-
-    // Check if all videos in this milestone are completed
-    const videoBlocks = milestone.content.filter((block: any) => block.type === "video")
-    const allVideosCompleted = videoBlocks.every(
-      (_: any, index: number) => completedVideos.has(index) || index === videoIndex,
-    )
-
-    if (allVideosCompleted && !isCompleted) {
-      console.log(`All videos completed in milestone ${milestoneIndex}, auto-completing milestone`)
-      setTimeout(() => {
-        handleMarkComplete()
-      }, 1000) // Small delay for better UX
-    }
-  }
-
-  const handleVideoProgress = (videoIndex: number, progress: number) => {
-    setVideoProgress((prev) => ({
-      ...prev,
-      [videoIndex]: progress,
-    }))
-  }
-
-  useEffect(() => {
-    setIsCompleted(milestone.isCompleted)
-  }, [milestone.isCompleted])
-
-  return (
-    <Card className={`border-2 ${isCompleted ? "border-green-500 bg-green-50" : "border-gray-200"}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between text-black">
-          <span className="flex items-center">
-            {isCompleted ? (
-              <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-            ) : (
-              <div className="w-5 h-5 mr-2 border-2 border-gray-300 rounded-full" />
-            )}
-            {milestone.title}
-          </span>
-          {!isAccessible && <Lock className="w-5 h-5 text-gray-400" />}
-        </CardTitle>
-      </CardHeader>
-
-      {isAccessible && (
-        <CardContent className="space-y-4">
-          {milestone.content.map((block: any, index: number) => (
-            <div key={index}>
-              {block.type === "text" && (
-                <div className="p-4 bg-white border border-gray-200 rounded-lg">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{block.data}</p>
-                </div>
-              )}
-
-              {block.type === "pdf" && (
-                <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <FileText className="w-5 h-5 mr-2 text-red-500" />
-                      <span className="font-medium text-black">{block.data.title}</span>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700"
-                      onClick={() => window.open(block.data.url, "_blank")}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {block.type === "video" && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-black">{block.data.title}</h4>
-                    {completedVideos.has(index) && (
-                      <Badge className="bg-green-600 text-white">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Completed
-                      </Badge>
-                    )}
-                  </div>
-                  <VideoPlayer
-                    src={block.data.url}
-                    onVideoComplete={() => handleVideoComplete(index)}
-                    onProgress={(progress) => handleVideoProgress(index, progress)}
-                  />
-                  {videoProgress[index] && videoProgress[index] < 100 && (
-                    <div className="text-sm text-gray-600">Progress: {Math.round(videoProgress[index])}%</div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-
-          <div className="flex gap-2 pt-4">
-            {!isCompleted && (
-              <Button
-                onClick={handleMarkComplete}
-                className="bg-green-600 hover:bg-green-700"
-                disabled={isMarkingComplete}
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                {isMarkingComplete ? "Marking Complete..." : "Mark as Complete"}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      )}
-    </Card>
-  )
+interface Course {
+  id: string
+  title: string
+  description: string
+  isFree: boolean
+  price: number
+  duration: string
+  image: string
+  milestones: Milestone[]
+  isPurchased?: boolean
+  progress?: number
 }
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
-  const [currentMilestone, setCurrentMilestone] = useState(0)
-  const [courseData, setCourseData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isEnrolling, setIsEnrolling] = useState(false)
-  const { user } = useAuth()
+interface Milestone {
+  id: string
+  title: string
+  isCompleted: boolean
+  content: ContentItem[]
+}
+
+interface ContentItem {
+  type: "text" | "video" | "pdf"
+  data: string | { title: string; url: string }
+}
+
+export default function CoursePage({ params }: { params: { id: string } }) {
+  const { user, token, loading } = useAuth()
   const router = useRouter()
+  const [course, setCourse] = useState<Course | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentMilestone, setCurrentMilestone] = useState(0)
+  const [isEnrolling, setIsEnrolling] = useState(false)
 
   useEffect(() => {
+    if (loading) return // Wait for auth to load
+
     if (!user) {
       router.push("/login")
       return
     }
 
-    fetchCourseWithProgress()
-  }, [params.id, user, router])
+    fetchCourse()
+  }, [user, token, loading, params.id, router])
 
-  const fetchCourseWithProgress = async () => {
+  const fetchCourse = async () => {
     try {
-      const token = localStorage.getItem("authToken")
-      if (!token) {
-        console.log("No auth token found")
-        router.push("/login")
-        return
+      console.log("Fetching course:", params.id)
+
+      const url = `/api/courses/${params.id}`
+      const headers: any = {}
+
+      // If user is authenticated, get course with progress
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+
+        // Try to get course with progress first
+        const progressResponse = await fetch(`${url}/progress`, { headers })
+        console.log("Progress response status:", progressResponse.status)
+
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json()
+          console.log("Progress data:", progressData)
+
+          if (progressData.success) {
+            setCourse(progressData.course)
+            setIsLoading(false)
+            return
+          }
+        }
       }
 
-      console.log("Fetching course with progress for:", params.id)
-
-      const response = await fetch(`/api/courses/${params.id}/progress`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      console.log("Response status:", response.status)
-
-      if (response.status === 401) {
-        console.log("Token expired, redirecting to login")
-        localStorage.removeItem("authToken")
-        router.push("/login")
-        return
-      }
+      // Fallback to regular course fetch
+      const response = await fetch(url, { headers })
+      console.log("Course response status:", response.status)
 
       const data = await response.json()
-      console.log("Course data received:", data)
+      console.log("Course data:", data)
 
       if (data.success) {
-        setCourseData(data.course)
-
-        // Set current milestone to first incomplete one
-        const firstIncomplete = data.course.milestones.findIndex((m: any) => !m.isCompleted)
-        if (firstIncomplete !== -1) {
-          setCurrentMilestone(firstIncomplete)
-        }
+        setCourse(data.course)
       } else {
         console.error("Failed to fetch course:", data.message)
-        // If course not found, try fetching basic course info
-        await fetchBasicCourse()
       }
     } catch (error) {
       console.error("Error fetching course:", error)
-      await fetchBasicCourse()
     } finally {
       setIsLoading(false)
     }
   }
 
-  const fetchBasicCourse = async () => {
-    try {
-      console.log("Fetching basic course info for:", params.id)
-      const response = await fetch(`/api/courses/${params.id}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setCourseData({ ...data.course, isPurchased: false })
-      } else {
-        console.error("Course not found")
-      }
-    } catch (error) {
-      console.error("Error fetching basic course:", error)
-    }
-  }
-
-  const handleMilestoneComplete = (milestoneIndex: number) => {
-    console.log(`Milestone ${milestoneIndex} completed, updating course data`)
-    setCourseData((prevData: any) => {
-      const updatedMilestones = [...prevData.milestones]
-      updatedMilestones[milestoneIndex] = {
-        ...updatedMilestones[milestoneIndex],
-        isCompleted: true,
-      }
-
-      // Calculate new progress
-      const completedCount = updatedMilestones.filter((m) => m.isCompleted).length
-      const newProgress = (completedCount / updatedMilestones.length) * 100
-
-      return {
-        ...prevData,
-        milestones: updatedMilestones,
-        progress: newProgress,
-      }
-    })
-
-    // Auto-advance to next milestone
-    if (milestoneIndex < courseData.milestones.length - 1) {
-      setTimeout(() => {
-        setCurrentMilestone(milestoneIndex + 1)
-      }, 1500)
-    }
-  }
-
-  const handleEnrollment = async () => {
-    if (isEnrolling) return
+  const handleEnroll = async () => {
+    if (!token || !course) return
 
     setIsEnrolling(true)
     try {
-      const token = localStorage.getItem("authToken")
-      if (!token) {
-        alert("Please log in again")
-        router.push("/login")
-        return
-      }
+      console.log("Enrolling in course:", course.id)
 
-      console.log("Enrolling in course:", params.id)
-
-      const response = await fetch(`/api/courses/${params.id}/enroll`, {
+      const response = await fetch(`/api/courses/${course.id}/enroll`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -315,22 +116,13 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
         },
       })
 
-      console.log("Enrollment response status:", response.status)
-
-      if (response.status === 401) {
-        alert("Session expired. Please log in again.")
-        localStorage.removeItem("authToken")
-        router.push("/login")
-        return
-      }
-
+      console.log("Enroll response status:", response.status)
       const data = await response.json()
-      console.log("Enrollment response:", data)
+      console.log("Enroll response data:", data)
 
       if (data.success) {
         alert("Successfully enrolled in course!")
-        // Refresh course data to show enrolled state
-        await fetchCourseWithProgress()
+        fetchCourse() // Refresh course data
       } else {
         alert(data.message || "Failed to enroll in course")
       }
@@ -342,228 +134,281 @@ export default function CourseDetailPage({ params }: { params: { id: string } })
     }
   }
 
-  if (isLoading) {
+  const handleMilestoneComplete = async (milestoneId: string) => {
+    if (!token || !course) return
+
+    try {
+      console.log("Marking milestone complete:", milestoneId)
+
+      const response = await fetch(`/api/courses/${course.id}/progress`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ milestoneId }),
+      })
+
+      console.log("Progress response status:", response.status)
+      const data = await response.json()
+      console.log("Progress response data:", data)
+
+      if (data.success) {
+        // Update local state
+        setCourse((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            milestones: prev.milestones.map((milestone) =>
+              milestone.id === milestoneId ? { ...milestone, isCompleted: true } : milestone,
+            ),
+            progress: data.progress,
+          }
+        })
+
+        // Move to next milestone if available
+        const currentIndex = course.milestones.findIndex((m) => m.id === milestoneId)
+        if (currentIndex < course.milestones.length - 1) {
+          setCurrentMilestone(currentIndex + 1)
+        }
+      } else {
+        alert(data.message || "Failed to update progress")
+      }
+    } catch (error) {
+      console.error("Error updating progress:", error)
+      alert("Failed to update progress")
+    }
+  }
+
+  const renderContent = (content: ContentItem) => {
+    switch (content.type) {
+      case "text":
+        return (
+          <div className="prose max-w-none mb-6">
+            <div className="whitespace-pre-wrap text-gray-700">{content.data as string}</div>
+          </div>
+        )
+      case "video":
+        const videoData = content.data as { title: string; url: string }
+        return (
+          <div className="mb-6">
+            <h4 className="font-medium mb-2 flex items-center">
+              <Play className="h-4 w-4 mr-2" />
+              {videoData.title}
+            </h4>
+            <VideoPlayer src={videoData.url} />
+          </div>
+        )
+      case "pdf":
+        const pdfData = content.data as { title: string; url: string }
+        return (
+          <div className="mb-6">
+            <div className="border rounded-lg p-4 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-red-600" />
+                  <span className="font-medium">{pdfData.title}</span>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <a href={pdfData.url} target="_blank" rel="noopener noreferrer">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="text-center py-8">
-            <div className="text-black">Loading course...</div>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading course...</p>
           </div>
         </div>
       </div>
     )
   }
 
-  if (!courseData) {
+  if (!course) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="text-center py-8">
-            <div className="text-red-600">Course not found</div>
-            <Button onClick={() => router.push("/home")} className="mt-4">
-              Back to Home
-            </Button>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Course not found</h2>
+            <p className="text-gray-600 mb-4">The course you're looking for doesn't exist.</p>
+            <Button onClick={() => router.push("/home")}>Back to Home</Button>
           </div>
         </div>
       </div>
     )
   }
 
-  const completedMilestones = courseData.milestones ? courseData.milestones.filter((m: any) => m.isCompleted).length : 0
-  const totalMilestones = courseData.milestones ? courseData.milestones.length : 0
+  const completedMilestones = course.milestones.filter((m) => m.isCompleted).length
+  const progressPercentage = course.milestones.length > 0 ? (completedMilestones / course.milestones.length) * 100 : 0
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Course Header */}
-      <div className="bg-gray-50 border-b-2 border-gray-200">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-black mb-4">{courseData.title}</h1>
-              <p className="text-gray-600 mb-4 leading-relaxed">{courseData.description}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Course Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">{course.title}</h1>
+              <p className="text-gray-600 mb-6">{course.description}</p>
 
-              <div className="flex flex-wrap items-center gap-4 mb-4">
-                <Badge
-                  variant={courseData.isFree ? "secondary" : "destructive"}
-                  className={courseData.isFree ? "bg-gray-100 text-black" : "bg-red-600 text-white"}
-                >
-                  {courseData.isFree ? "Free" : `₹${courseData.price}`}
-                </Badge>
-
-                <div className="flex items-center text-sm text-gray-600">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                  {courseData.rating} ({courseData.students} students)
+              <div className="flex flex-wrap gap-4 mb-6">
+                <div className="flex items-center text-sm text-gray-500">
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{course.duration}</span>
                 </div>
-
-                <div className="flex items-center text-sm text-gray-600">
-                  <Play className="w-4 h-4 mr-1" />
-                  {courseData.duration}
-                </div>
+                {!course.isFree && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <DollarSign className="h-4 w-4 mr-1" />
+                    <span>${course.price}</span>
+                  </div>
+                )}
               </div>
 
-              {courseData.isPurchased && totalMilestones > 0 && (
-                <>
-                  <div className="flex items-center text-sm text-gray-600 mb-4">
-                    <span>
-                      Progress: {completedMilestones}/{totalMilestones} milestones completed (
-                      {Math.round((completedMilestones / totalMilestones) * 100)}%)
-                    </span>
-                  </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={course.isFree ? "secondary" : "destructive"}>
+                  {course.isFree ? "Free" : `$${course.price}`}
+                </Badge>
+                {course.isPurchased && <Badge variant="default">Enrolled</Badge>}
+              </div>
+            </div>
 
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <Progress value={(completedMilestones / totalMilestones) * 100} className="h-2" />
+            <div className="lg:col-span-1">
+              {course.image && (
+                <div className="aspect-video w-full overflow-hidden rounded-lg mb-4">
+                  <img
+                    src={course.image || "/placeholder.svg"}
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.src = "/placeholder.svg?height=200&width=300"
+                    }}
+                  />
+                </div>
+              )}
+
+              {!course.isPurchased ? (
+                <Button className="w-full" onClick={handleEnroll} disabled={isEnrolling}>
+                  {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for $${course.price}`}
+                </Button>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                      <span>Progress</span>
+                      <span>{Math.round(progressPercentage)}%</span>
+                    </div>
+                    <Progress value={progressPercentage} className="w-full" />
                   </div>
-                </>
+                  <div className="text-sm text-gray-600">
+                    {completedMilestones} of {course.milestones.length} milestones completed
+                  </div>
+                </div>
               )}
             </div>
-
-            {!courseData.isPurchased && (
-              <div className="lg:w-80">
-                <Card className={`border-2 ${courseData.isFree ? "border-green-500" : "border-red-500"}`}>
-                  <CardHeader>
-                    <CardTitle className="text-center text-black">
-                      {courseData.isFree ? "Free Course" : "Enroll Now"}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    {!courseData.isFree && (
-                      <div className="text-3xl font-bold text-red-600 mb-4">₹{courseData.price}</div>
-                    )}
-                    <Button
-                      className={`w-full font-bold py-3 ${
-                        courseData.isFree
-                          ? "bg-green-600 hover:bg-green-700 text-white"
-                          : "bg-red-600 hover:bg-red-700 text-white"
-                      }`}
-                      onClick={handleEnrollment}
-                      disabled={isEnrolling}
-                    >
-                      {isEnrolling ? "Enrolling..." : courseData.isFree ? "Start Learning" : "Enroll in Course"}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
           </div>
         </div>
-      </div>
 
-      {/* Course Content with Sidebar */}
-      {courseData.isPurchased && courseData.milestones && courseData.milestones.length > 0 && (
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 p-6">
-          {/* Sidebar - Milestone Navigation */}
-          <div className="lg:w-80">
-            <Card className="border-2 border-gray-200 sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-black">Course Content</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-96">
-                  <div className="p-4 space-y-2">
-                    {courseData.milestones.map((milestone: any, index: number) => {
-                      const isAccessible = index === 0 || courseData.milestones[index - 1].isCompleted
-
-                      return (
-                        <button
-                          key={milestone.id}
-                          onClick={() => setCurrentMilestone(index)}
-                          className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${
-                            currentMilestone === index
-                              ? "border-red-500 bg-red-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          } ${!isAccessible ? "opacity-50 cursor-not-allowed" : ""}`}
-                          disabled={!isAccessible}
-                        >
-                          <div className="flex items-center">
-                            {milestone.isCompleted ? (
-                              <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                            ) : isAccessible ? (
-                              <div className="w-4 h-4 mr-2 border-2 border-gray-300 rounded-full" />
-                            ) : (
-                              <Lock className="w-4 h-4 mr-2 text-gray-400" />
-                            )}
-                            <span className={`text-sm font-medium ${isAccessible ? "text-black" : "text-gray-400"}`}>
-                              {milestone.title}
-                            </span>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="flex-1">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-black mb-2">{courseData.milestones[currentMilestone]?.title}</h2>
-                <p className="text-gray-600">Complete this milestone to progress through the course</p>
-              </div>
-
-              {/* Navigation buttons */}
-              <div className="flex gap-2">
-                {currentMilestone > 0 && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentMilestone(currentMilestone - 1)}
-                    className="border-2 border-gray-200 hover:border-red-500"
-                  >
-                    Previous
-                  </Button>
-                )}
-
-                {currentMilestone < courseData.milestones.length - 1 &&
-                  courseData.milestones[currentMilestone].isCompleted && (
-                    <Button
-                      onClick={() => setCurrentMilestone(currentMilestone + 1)}
-                      className="bg-red-600 hover:bg-red-700"
+        {/* Course Content */}
+        {course.isPurchased && course.milestones.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Milestone Navigation */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Course Milestones</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {course.milestones.map((milestone, index) => (
+                    <button
+                      key={milestone.id}
+                      onClick={() => setCurrentMilestone(index)}
+                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        currentMilestone === index ? "bg-blue-50 border-blue-200 border" : "hover:bg-gray-50"
+                      }`}
                     >
-                      Next Milestone
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  )}
-              </div>
+                      <div className="flex items-center">
+                        {milestone.isCompleted ? (
+                          <CheckCircle className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
+                        ) : (
+                          <Circle className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
+                        )}
+                        <span className={`text-sm ${milestone.isCompleted ? "text-green-700" : "text-gray-700"}`}>
+                          {milestone.title}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
 
-            {courseData.milestones[currentMilestone] && (
-              <MilestoneBlock
-                milestone={courseData.milestones[currentMilestone]}
-                isAccessible={currentMilestone === 0 || courseData.milestones[currentMilestone - 1].isCompleted}
-                onMilestoneComplete={handleMilestoneComplete}
-                milestoneIndex={currentMilestone}
-                courseId={params.id}
-              />
-            )}
-          </div>
-        </div>
-      )}
+            {/* Milestone Content */}
+            <div className="lg:col-span-3">
+              {course.milestones[currentMilestone] && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle>{course.milestones[currentMilestone].title}</CardTitle>
+                      {!course.milestones[currentMilestone].isCompleted && (
+                        <Button
+                          onClick={() => handleMilestoneComplete(course.milestones[currentMilestone].id)}
+                          size="sm"
+                        >
+                          Mark Complete
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {course.milestones[currentMilestone].content.map((content, index) => (
+                      <div key={index}>{renderContent(content)}</div>
+                    ))}
 
-      {/* Show message if not enrolled */}
-      {!courseData.isPurchased && (
-        <div className="max-w-7xl mx-auto p-6">
+                    {course.milestones[currentMilestone].content.length === 0 && (
+                      <p className="text-gray-500 italic">No content available for this milestone.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Not Enrolled Message */}
+        {!course.isPurchased && (
           <Card>
             <CardContent className="text-center py-12">
-              <h3 className="text-xl font-semibold mb-4">Enrollment Required</h3>
-              <p className="text-gray-600 mb-6">You need to enroll in this course to access the content.</p>
-              <Button onClick={handleEnrollment} disabled={isEnrolling}>
-                {isEnrolling
-                  ? "Enrolling..."
-                  : courseData.isFree
-                    ? "Enroll for Free"
-                    : `Purchase for ₹${courseData.price}`}
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Enroll to Access Course Content</h3>
+              <p className="text-gray-600 mb-4">
+                {course.isFree
+                  ? "This course is free! Enroll now to start learning."
+                  : `Enroll for $${course.price} to access all course materials and milestones.`}
+              </p>
+              <Button onClick={handleEnroll} disabled={isEnrolling}>
+                {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for $${course.price}`}
               </Button>
             </CardContent>
           </Card>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Trash2, Edit, Plus, Users, BookOpen, Eye } from "lucide-react"
+import { Trash2, Edit, Plus, Users, BookOpen } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
 
@@ -23,11 +23,8 @@ interface Course {
   description: string
   isFree: boolean
   price: number
-  instructor: string
   duration: string
   image: string
-  students: number
-  rating: number
 }
 
 interface User {
@@ -47,7 +44,7 @@ interface Milestone {
 }
 
 export default function AdminDashboard() {
-  const { user } = useAuth()
+  const { user, token, loading } = useAuth()
   const router = useRouter()
   const [courses, setCourses] = useState<Course[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -62,7 +59,6 @@ export default function AdminDashboard() {
     description: "",
     isPaid: false,
     price: 0,
-    instructor: "",
     duration: "",
     imageUrl: "",
   })
@@ -77,6 +73,8 @@ export default function AdminDashboard() {
   ])
 
   useEffect(() => {
+    if (loading) return // Wait for auth to load
+
     if (!user) {
       router.push("/login")
       return
@@ -88,10 +86,9 @@ export default function AdminDashboard() {
     }
 
     fetchData()
-  }, [user, router])
+  }, [user, token, loading, router])
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem("authToken")
     if (!token) {
       throw new Error("No auth token")
     }
@@ -104,7 +101,6 @@ export default function AdminDashboard() {
   const handleAuthError = (response: Response) => {
     if (response.status === 401) {
       alert("Session expired. Please log in again.")
-      localStorage.removeItem("authToken")
       router.push("/login")
       return true
     }
@@ -112,7 +108,15 @@ export default function AdminDashboard() {
   }
 
   const fetchData = async () => {
+    if (!token) {
+      console.log("No token available")
+      router.push("/login")
+      return
+    }
+
     try {
+      console.log("Fetching admin data with token:", token.substring(0, 20) + "...")
+
       const headers = getAuthHeaders()
 
       const [coursesResponse, usersResponse] = await Promise.all([
@@ -120,12 +124,18 @@ export default function AdminDashboard() {
         fetch("/api/admin/users", { headers }),
       ])
 
+      console.log("Courses response status:", coursesResponse.status)
+      console.log("Users response status:", usersResponse.status)
+
       if (handleAuthError(coursesResponse) || handleAuthError(usersResponse)) {
         return
       }
 
       const coursesData = await coursesResponse.json()
       const usersData = await usersResponse.json()
+
+      console.log("Courses data:", coursesData)
+      console.log("Users data:", usersData)
 
       if (coursesData.success) {
         setCourses(coursesData.courses)
@@ -145,15 +155,22 @@ export default function AdminDashboard() {
   }
 
   const fetchExistingMilestones = async (courseId: string) => {
+    if (!token) return
+
     try {
+      console.log("Fetching existing milestones for course:", courseId)
+
       const headers = getAuthHeaders()
       const response = await fetch(`/api/courses/${courseId}`, { headers })
+
+      console.log("Fetch milestones response status:", response.status)
 
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
+      console.log("Existing milestones data:", data)
 
       if (data.success && data.course.milestones) {
         const formattedMilestones = data.course.milestones.map((milestone: any) => ({
@@ -163,6 +180,7 @@ export default function AdminDashboard() {
           videoUrl: milestone.content.find((c: any) => c.type === "video")?.data.url || "",
         }))
 
+        console.log("Formatted milestones:", formattedMilestones)
         setExistingMilestones(formattedMilestones)
         setMilestones(
           formattedMilestones.length > 0
@@ -190,7 +208,6 @@ export default function AdminDashboard() {
       description: "",
       isPaid: false,
       price: 0,
-      instructor: "",
       duration: "",
       imageUrl: "",
     })
@@ -212,7 +229,6 @@ export default function AdminDashboard() {
       description: course.description,
       isPaid: !course.isFree,
       price: course.price,
-      instructor: course.instructor,
       duration: course.duration,
       imageUrl: course.image,
     })
@@ -225,15 +241,27 @@ export default function AdminDashboard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!token) {
+      alert("Session expired. Please log in again.")
+      router.push("/login")
+      return
+    }
+
     try {
+      console.log("Submitting course form")
+
       const headers = getAuthHeaders()
       const courseData = {
         ...formData,
         milestones: milestones.filter((m) => m.title.trim() !== ""),
       }
 
+      console.log("Course data:", courseData)
+
       const url = editingCourse ? `/api/courses/${editingCourse.id}` : "/api/courses"
       const method = editingCourse ? "PUT" : "POST"
+
+      console.log("Making request to:", url, "with method:", method)
 
       const response = await fetch(url, {
         method,
@@ -241,11 +269,14 @@ export default function AdminDashboard() {
         body: JSON.stringify(courseData),
       })
 
+      console.log("Submit response status:", response.status)
+
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
+      console.log("Submit response data:", data)
 
       if (data.success) {
         alert(editingCourse ? "Course updated successfully!" : "Course created successfully!")
@@ -263,18 +294,29 @@ export default function AdminDashboard() {
   const handleDeleteCourse = async (courseId: string) => {
     if (!confirm("Are you sure you want to delete this course?")) return
 
+    if (!token) {
+      alert("Session expired. Please log in again.")
+      router.push("/login")
+      return
+    }
+
     try {
+      console.log("Deleting course:", courseId)
+
       const headers = getAuthHeaders()
       const response = await fetch(`/api/courses/${courseId}`, {
         method: "DELETE",
         headers,
       })
 
+      console.log("Delete response status:", response.status)
+
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
+      console.log("Delete response data:", data)
 
       if (data.success) {
         alert("Course deleted successfully!")
@@ -352,7 +394,7 @@ export default function AdminDashboard() {
     setMilestones(updated)
   }
 
-  if (isLoading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -377,7 +419,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
@@ -395,16 +437,6 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{courses.filter((c) => c.students > 0).length}</div>
             </CardContent>
           </Card>
         </div>
@@ -446,10 +478,8 @@ export default function AdminDashboard() {
                       <Badge variant={course.isFree ? "secondary" : "destructive"}>
                         {course.isFree ? "Free" : `$${course.price}`}
                       </Badge>
-                      <Badge variant="outline">{course.students} students</Badge>
                     </div>
                     <div className="text-sm text-gray-500">
-                      <p>Instructor: {course.instructor}</p>
                       <p>Duration: {course.duration}</p>
                     </div>
                   </CardContent>
@@ -541,16 +571,6 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <Label htmlFor="instructor">Instructor</Label>
-                  <Input
-                    id="instructor"
-                    value={formData.instructor}
-                    onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div>
                   <Label htmlFor="duration">Duration</Label>
                   <Input
                     id="duration"
@@ -561,7 +581,7 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <Label htmlFor="imageUrl">Image URL</Label>
                   <Input
                     id="imageUrl"

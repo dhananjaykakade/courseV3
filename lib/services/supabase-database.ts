@@ -288,6 +288,8 @@ class SupabaseDatabaseService {
 
   async createCourse(courseData: any): Promise<any | null> {
     try {
+      console.log("Creating course with data:", courseData)
+
       const { data, error } = await this.adminClient
         .from("courses")
         .insert({
@@ -295,7 +297,6 @@ class SupabaseDatabaseService {
           description: courseData.description,
           is_free: !courseData.isPaid,
           price: courseData.price || 0,
-          instructor: courseData.instructor || "LearnHub Instructor",
           duration: courseData.duration || "TBD",
           image_url: courseData.imageUrl,
         })
@@ -307,10 +308,12 @@ class SupabaseDatabaseService {
         return null
       }
 
+      console.log("Course created successfully:", data.id)
       const course = this.mapCourseFromDb(data)
 
       // Create milestones if provided
       if (courseData.milestones && courseData.milestones.length > 0) {
+        console.log("Creating milestones for course:", course.id)
         await this.createMilestones(course.id, courseData.milestones)
       }
 
@@ -323,8 +326,11 @@ class SupabaseDatabaseService {
 
   async createMilestones(courseId: string, milestones: any[]): Promise<void> {
     try {
+      console.log("Creating milestones for course:", courseId, "Count:", milestones.length)
+
       for (let i = 0; i < milestones.length; i++) {
         const milestone = milestones[i]
+        console.log(`Creating milestone ${i + 1}:`, milestone.title)
 
         // Create milestone
         const { data: milestoneData, error: milestoneError } = await this.adminClient
@@ -341,6 +347,8 @@ class SupabaseDatabaseService {
           console.error("Error creating milestone:", milestoneError)
           continue
         }
+
+        console.log("Milestone created:", milestoneData.id)
 
         // Create milestone content
         const contentItems = []
@@ -389,10 +397,13 @@ class SupabaseDatabaseService {
 
         // Insert all content items
         if (contentItems.length > 0) {
+          console.log(`Creating ${contentItems.length} content items for milestone:`, milestoneData.id)
           const { error: contentError } = await this.adminClient.from("milestone_content").insert(contentItems)
 
           if (contentError) {
             console.error("Error creating milestone content:", contentError)
+          } else {
+            console.log("Milestone content created successfully")
           }
         }
       }
@@ -403,13 +414,14 @@ class SupabaseDatabaseService {
 
   async updateCourse(id: string, courseData: any): Promise<any | null> {
     try {
+      console.log("Updating course:", id, "with data:", courseData)
+
       const updateData: any = {}
 
       if (courseData.title) updateData.title = courseData.title
       if (courseData.description) updateData.description = courseData.description
       if (courseData.isPaid !== undefined) updateData.is_free = !courseData.isPaid
       if (courseData.price !== undefined) updateData.price = courseData.price
-      if (courseData.instructor) updateData.instructor = courseData.instructor
       if (courseData.duration) updateData.duration = courseData.duration
       if (courseData.imageUrl) updateData.image_url = courseData.imageUrl
 
@@ -420,6 +432,19 @@ class SupabaseDatabaseService {
         return null
       }
 
+      console.log("Course updated successfully")
+
+      // Handle milestones update
+      if (courseData.milestones && courseData.milestones.length > 0) {
+        console.log("Updating milestones for course:", id)
+
+        // Delete existing milestones and their content
+        await this.deleteMilestones(id)
+
+        // Create new milestones
+        await this.createMilestones(id, courseData.milestones)
+      }
+
       return this.mapCourseFromDb(data)
     } catch (error) {
       console.error("Error updating course:", error)
@@ -427,8 +452,45 @@ class SupabaseDatabaseService {
     }
   }
 
+  async deleteMilestones(courseId: string): Promise<void> {
+    try {
+      console.log("Deleting existing milestones for course:", courseId)
+
+      // First delete milestone content
+      const { data: milestones } = await this.adminClient.from("milestones").select("id").eq("course_id", courseId)
+
+      if (milestones && milestones.length > 0) {
+        const milestoneIds = milestones.map((m) => m.id)
+
+        // Delete milestone content
+        const { error: contentError } = await this.adminClient
+          .from("milestone_content")
+          .delete()
+          .in("milestone_id", milestoneIds)
+
+        if (contentError) {
+          console.error("Error deleting milestone content:", contentError)
+        }
+
+        // Delete milestones
+        const { error: milestoneError } = await this.adminClient.from("milestones").delete().eq("course_id", courseId)
+
+        if (milestoneError) {
+          console.error("Error deleting milestones:", milestoneError)
+        } else {
+          console.log("Existing milestones deleted successfully")
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting milestones:", error)
+    }
+  }
+
   async deleteCourse(id: string): Promise<boolean> {
     try {
+      // First delete milestones and their content
+      await this.deleteMilestones(id)
+
       const { error } = await this.adminClient.from("courses").delete().eq("id", id)
 
       if (error) {
@@ -660,9 +722,6 @@ class SupabaseDatabaseService {
       description: dbCourse.description,
       isFree: dbCourse.is_free,
       price: dbCourse.price,
-      rating: Number.parseFloat(dbCourse.rating),
-      students: dbCourse.students,
-      instructor: dbCourse.instructor,
       duration: dbCourse.duration,
       image: dbCourse.image_url,
     }
