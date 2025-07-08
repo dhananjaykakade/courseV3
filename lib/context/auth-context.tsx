@@ -6,64 +6,85 @@ import { useRouter } from "next/navigation"
 
 interface User {
   id: string
-  email: string
   name: string
+  email: string
   role: "admin" | "user"
   isEmailVerified: boolean
-  contactNumber?: string
 }
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => void
-  isLoading: boolean
+  loading: boolean
+  token: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [token, setToken] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    // Check for existing auth token on mount
-    const token = localStorage.getItem("authToken")
-    if (token) {
-      // Verify token and get user info
-      fetchUserProfile(token)
+    // Check for existing token on mount
+    const storedToken = localStorage.getItem("authToken")
+    console.log("Auth context initializing, stored token:", storedToken ? "exists" : "none")
+
+    if (storedToken) {
+      setToken(storedToken)
+      validateToken(storedToken)
     } else {
-      setIsLoading(false)
+      setLoading(false)
     }
   }, [])
 
-  const fetchUserProfile = async (token: string) => {
+  const validateToken = async (authToken: string) => {
     try {
+      console.log("Validating token...")
       const response = await fetch("/api/auth/profile", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       })
 
-      const data = await response.json()
+      console.log("Token validation response status:", response.status)
 
-      if (data.success) {
-        setUser(data.user)
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Token validation response:", data)
+
+        if (data.success && data.user) {
+          console.log("Token valid, setting user:", data.user.email)
+          setUser(data.user)
+          setToken(authToken)
+        } else {
+          console.log("Token invalid, clearing storage")
+          localStorage.removeItem("authToken")
+          setToken(null)
+          setUser(null)
+        }
       } else {
-        // Invalid token, remove it
+        console.log("Token validation failed, clearing storage")
         localStorage.removeItem("authToken")
+        setToken(null)
+        setUser(null)
       }
     } catch (error) {
-      console.error("Error fetching user profile:", error)
+      console.error("Error validating token:", error)
       localStorage.removeItem("authToken")
+      setToken(null)
+      setUser(null)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      console.log("Attempting login for:", email)
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -73,27 +94,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       const data = await response.json()
+      console.log("Login response:", data)
 
-      if (data.success) {
-        localStorage.setItem("authToken", data.token)
+      if (data.success && data.token && data.user) {
+        const authToken = data.token
+        console.log("Login successful, storing token")
+        localStorage.setItem("authToken", authToken)
+        setToken(authToken)
         setUser(data.user)
-        return { success: true, message: "Login successful" }
+        return true
       } else {
-        return { success: false, message: data.message }
+        console.error("Login failed:", data.message)
+        return false
       }
     } catch (error) {
       console.error("Login error:", error)
-      return { success: false, message: "Login failed. Please try again." }
+      return false
     }
   }
 
   const logout = () => {
+    console.log("Logging out user")
     localStorage.removeItem("authToken")
+    setToken(null)
     setUser(null)
-    router.push("/")
+    router.push("/login")
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
+  const contextValue = {
+    user,
+    login,
+    logout,
+    loading,
+    token,
+  }
+
+  console.log("Auth context state:", {
+    hasUser: !!user,
+    hasToken: !!token,
+    loading,
+    userEmail: user?.email,
+  })
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

@@ -1,155 +1,147 @@
 "use client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Play, Lock, Users, Star } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { useState, useEffect } from "react"
+import { Clock, DollarSign } from "lucide-react"
 import { Navbar } from "@/components/navbar"
+import { useAuth } from "@/lib/context/auth-context"
 
-const HomePage = () => {
-  const [coursesData, setCoursesData] = useState({
-    free: [],
-    paid: [],
-  })
+interface Course {
+  id: string
+  title: string
+  description: string
+  isFree: boolean
+  price: number
+  duration: string
+  image: string
+}
+
+export default function HomePage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+  const [courses, setCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await fetch("/api/courses")
-        const data = await response.json()
+    if (loading) return // Wait for auth to load
 
-        if (data.success) {
-          const freeCourses = data.courses.filter((course: any) => course.isFree)
-          const paidCourses = data.courses.filter((course: any) => !course.isFree)
-
-          setCoursesData({
-            free: freeCourses,
-            paid: paidCourses,
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching courses:", error)
-      } finally {
-        setIsLoading(false)
-      }
+    if (!user) {
+      router.push("/login")
+      return
     }
 
     fetchCourses()
-  }, [])
+  }, [user, loading, router])
 
-  function CourseCard({ course }: { course: any }) {
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch("/api/courses")
+      const data = await response.json()
+
+      if (data.success) {
+        setCourses(data.courses)
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCourseClick = (courseId: string) => {
+    router.push(`/course/${courseId}`)
+  }
+
+  if (loading || isLoading) {
     return (
-      <Card className="bg-white border-2 border-red-500 hover:border-red-600 transition-all duration-300 hover:shadow-2xl hover:scale-105">
-        <div className="aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
-          <Image
-            src={course.image || "/placeholder.svg"}
-            alt={course.title}
-            width={300}
-            height={200}
-            className="w-full h-full object-cover"
-          />
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading courses...</p>
+          </div>
         </div>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start mb-2">
-            <Badge
-              variant={course.isFree ? "secondary" : "destructive"}
-              className={course.isFree ? "bg-gray-100 text-black" : "bg-red-600 text-white"}
-            >
-              {course.isFree ? "Free" : `₹${course.price}`}
-            </Badge>
-            <div className="flex items-center text-sm text-gray-600">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-              {course.rating}
-            </div>
-          </div>
-          <CardTitle className="text-black text-lg font-bold leading-tight">{course.title}</CardTitle>
-          <CardDescription className="text-gray-600 text-sm line-clamp-2">{course.description}</CardDescription>
-          <div className="flex items-center text-sm text-gray-500 mt-2">
-            <Users className="w-4 h-4 mr-1" />
-            {course.students} students
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Link href={`/course/${course.id}`}>
-            <Button
-              className={`w-full font-semibold ${
-                course.isFree ? "bg-black text-white hover:bg-gray-800" : "bg-red-600 text-white hover:bg-red-700"
-              }`}
-            >
-              {course.isFree ? (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  Start Learning
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4 mr-2" />
-                  Buy Now
-                </>
-              )}
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto p-4">
-        <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-2">Discover Courses</h2>
-          <p className="text-gray-300">Learn new skills with our comprehensive course library</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name}!</h1>
+          <p className="text-gray-600">Discover and enroll in amazing courses</p>
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="text-white">Loading courses...</div>
+        {courses.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No courses available</h3>
+            <p className="text-gray-600">Check back later for new courses!</p>
           </div>
         ) : (
-          <Tabs defaultValue="free" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-800 border border-red-500">
-              <TabsTrigger
-                value="free"
-                className="data-[state=active]:bg-white data-[state=active]:text-black text-white"
-              >
-                Free Courses
-              </TabsTrigger>
-              <TabsTrigger
-                value="paid"
-                className="data-[state=active]:bg-red-600 data-[state=active]:text-white text-white"
-              >
-                Premium Courses
-              </TabsTrigger>
-            </TabsList>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.map((course) => (
+              <Card key={course.id} className="cursor-pointer hover:shadow-lg transition-shadow">
+                <div onClick={() => handleCourseClick(course.id)}>
+                  {course.image && (
+                    <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                      <img
+                        src={course.image || "/placeholder.svg"}
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg?height=200&width=300"
+                        }}
+                      />
+                    </div>
+                  )}
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
+                      <Badge variant={course.isFree ? "secondary" : "destructive"}>
+                        {course.isFree ? "Free" : `$${course.price}`}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4 line-clamp-3">{course.description}</p>
 
-            <TabsContent value="free" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {coursesData.free.map((course) => (
-                  <CourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            </TabsContent>
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        <span>{course.duration}</span>
+                      </div>
+                      {!course.isFree && (
+                        <div className="flex items-center">
+                          <DollarSign className="h-4 w-4 mr-1" />
+                          <span>${course.price}</span>
+                        </div>
+                      )}
+                    </div>
 
-            <TabsContent value="paid" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {coursesData.paid.map((course) => (
-                  <CourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+                    <Button
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleCourseClick(course.id)
+                      }}
+                    >
+                      View Course
+                    </Button>
+                  </CardContent>
+                </div>
+              </Card>
+            ))}
+          </div>
         )}
-      </main>
+      </div>
     </div>
   )
 }
-
-export default HomePage
