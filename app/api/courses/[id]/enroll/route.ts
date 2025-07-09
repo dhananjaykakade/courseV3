@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     // Enroll user in course
-    const success = await supabaseDb.enrollUserInCourse(user.id, params.id)
+    const success = await supabaseDb.enrollUser(user.id, params.id)
     console.log("Enrollment result:", success)
 
     if (!success) {

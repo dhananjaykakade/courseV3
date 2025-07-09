@@ -29,10 +29,10 @@ export default function LoginPage() {
 
     const result = await login(formData.email, formData.password)
 
-    if (result.success) {
+    if (result) {
       router.push("/home")
     } else {
-      setError(result.message)
+      setError("Invalid email or password")
     }
 
     setIsLoading(false)

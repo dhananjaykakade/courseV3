@@ -5,6 +5,8 @@ import type { VerifyEmailRequest, AuthResponse } from "@/lib/types/auth"
 export async function POST(request: NextRequest) {
   try {
     const body: VerifyEmailRequest = await request.json()
+    console.log("Body:", body)
+
     const { token } = body
 
     if (!token) {

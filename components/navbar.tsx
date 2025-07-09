@@ -1,7 +1,10 @@
 "use client"
+
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { BookOpen, User, LogOut, Settings } from "lucide-react"
+import { useAuth } from "@/lib/context/auth-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +12,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/context/auth-context"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login")
+    }
+  }, [user, loading, router])
 
   return (
-    <header className="bg-black text-white p-4">
+    <header className="bg-black text-white p-4 border-b border-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center text-xl font-bold">
           <BookOpen className="w-6 h-6 mr-2 text-red-500" />
@@ -35,15 +46,20 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user ? (
+          {loading ? (
+            <Skeleton className="h-10 w-32 rounded-full bg-gray-700" />
+          ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:text-red-500 flex items-center">
+                <Button
+                  variant="ghost"
+                  className="text-white hover:text-red-500 flex items-center px-3"
+                >
                   <User className="w-4 h-4 mr-2" />
-                  {user.name}
+                  {user.name || "User"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 bg-white text-black">
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center">
                     <User className="w-4 h-4 mr-2" />
@@ -59,7 +75,10 @@ export function Navbar() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="flex items-center text-red-600">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="flex items-center text-red-600 cursor-pointer"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </DropdownMenuItem>
