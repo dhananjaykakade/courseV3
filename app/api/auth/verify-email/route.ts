@@ -8,6 +8,8 @@ export async function POST(request: NextRequest) {
     console.log("Body:", body)
 
     const { token } = body
+    console.log("Token received:", token)
+
 
     if (!token) {
       return NextResponse.json<AuthResponse>(
@@ -18,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Find verification token
     const verificationToken = await supabaseDb.getVerificationToken(token)
+    console.log("Fetched verificationToken:", verificationToken)
 
     if (!verificationToken) {
       return NextResponse.json<AuthResponse>(
@@ -27,12 +30,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if token is expired
-    if (verificationToken.expiresAt < new Date()) {
-      return NextResponse.json<AuthResponse>(
-        { success: false, message: "Verification token has expired" },
-        { status: 400 },
-      )
-    }
+if (new Date(verificationToken.expiresAt) < new Date()) {
+  return NextResponse.json<AuthResponse>(
+    { success: false, message: "Verification token has expired" },
+    { status: 400 },
+  )
+}
+
 
     // Check if token is for email verification
     if (verificationToken.type !== "email_verification") {

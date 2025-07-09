@@ -41,16 +41,14 @@ export default function ProfilePage() {
 
   const fetchEnrolledCourses = async () => {
     try {
-      const token = localStorage.getItem("authToken")
-      if (!token) {
+      if (!user) {
         router.push("/login")
         return
       }
 
       const response = await fetch("/api/user/enrollments", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        method: "GET",
+        credentials: "include",
       })
 
       if (response.status === 401) {
@@ -112,7 +110,7 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex items-center space-x-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={user?.profileImage || "/placeholder.svg"} />
+              <AvatarImage src={ "/placeholder.svg"} />
               <AvatarFallback className="text-xl font-semibold">
                 {user?.name ? getInitials(user.name) : "U"}
               </AvatarFallback>

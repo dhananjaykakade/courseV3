@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 
 interface User {
@@ -15,9 +15,8 @@ interface User {
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   loading: boolean
-  token: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -25,68 +24,39 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [token, setToken] = useState<string | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    // Check for existing token on mount
-    const storedToken = localStorage.getItem("authToken")
-    console.log("Auth context initializing, stored token:", storedToken ? "exists" : "none")
-
-    if (storedToken) {
-      setToken(storedToken)
-      validateToken(storedToken)
-    } else {
-      setLoading(false)
-    }
-  }, [])
-
-  const validateToken = async (authToken: string) => {
+  // ✅ Fetch user using cookies
+  const fetchUser = useCallback(async () => {
+    setLoading(true)
     try {
-      console.log("Validating token...")
-      const response = await fetch("/api/auth/profile", {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
+      const res = await fetch("/api/auth/profile", {
+        credentials: "include", // Include cookies
       })
-
-      console.log("Token validation response status:", response.status)
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log("Token validation response:", data)
-
-        if (data.success && data.user) {
-          console.log("Token valid, setting user:", data.user.email)
-          setUser(data.user)
-          setToken(authToken)
-        } else {
-          console.log("Token invalid, clearing storage")
-          localStorage.removeItem("authToken")
-          setToken(null)
-          setUser(null)
-        }
+      if (!res.ok) throw new Error("Unauthorized")
+      const data = await res.json()
+      if (data.success && data.user) {
+        setUser(data.user)
       } else {
-        console.log("Token validation failed, clearing storage")
-        localStorage.removeItem("authToken")
-        setToken(null)
         setUser(null)
       }
     } catch (error) {
-      console.error("Error validating token:", error)
-      localStorage.removeItem("authToken")
-      setToken(null)
+      console.error("Fetch user error:", error)
       setUser(null)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log("Attempting login for:", email)
       const response = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include", // Important for setting cookie
         headers: {
           "Content-Type": "application/json",
         },
@@ -94,47 +64,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
       const data = await response.json()
-      console.log("Login response:", data)
-
-      if (data.success && data.token && data.user) {
-        const authToken = data.token
-        console.log("Login successful, storing token")
-        localStorage.setItem("authToken", authToken)
-        setToken(authToken)
-        setUser(data.user)
+      if (data.success) {
+        await fetchUser()
         return true
-      } else {
-        console.error("Login failed:", data.message)
-        return false
       }
-    } catch (error) {
-      console.error("Login error:", error)
+
+      console.warn("Login failed:", data.message)
+      return false
+    } catch (err) {
+      console.error("Login error:", err)
       return false
     }
   }
 
-  const logout = () => {
-    console.log("Logging out user")
-    localStorage.removeItem("authToken")
-    setToken(null)
-    setUser(null)
-    router.push("/login")
+  const logout = async (): Promise<void> => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      })
+    } catch (err) {
+      console.warn("Logout request failed:", err)
+    } finally {
+      setUser(null)
+      router.push("/login")
+    }
   }
 
-  const contextValue = {
+  const contextValue: AuthContextType = {
     user,
     login,
     logout,
     loading,
-    token,
   }
-
-  console.log("Auth context state:", {
-    hasUser: !!user,
-    hasToken: !!token,
-    loading,
-    userEmail: user?.email,
-  })
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }

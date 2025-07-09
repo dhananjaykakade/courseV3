@@ -44,7 +44,7 @@ interface Milestone {
 }
 
 export default function AdminDashboard() {
-  const { user, token, loading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [courses, setCourses] = useState<Course[]>([])
   const [users, setUsers] = useState<User[]>([])
@@ -86,17 +86,9 @@ export default function AdminDashboard() {
     }
 
     fetchData()
-  }, [user, token, loading, router])
+  }, [user, loading, router])
 
-  const getAuthHeaders = () => {
-    if (!token) {
-      throw new Error("No auth token")
-    }
-    return {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    }
-  }
+
 
   const handleAuthError = (response: Response) => {
     if (response.status === 401) {
@@ -108,20 +100,23 @@ export default function AdminDashboard() {
   }
 
   const fetchData = async () => {
-    if (!token) {
+    if (!user) {
       console.log("No token available")
       router.push("/login")
       return
     }
 
     try {
-      console.log("Fetching admin data with token:", token.substring(0, 20) + "...")
+    
 
-      const headers = getAuthHeaders()
 
       const [coursesResponse, usersResponse] = await Promise.all([
-        fetch("/api/courses", { headers }),
-        fetch("/api/admin/users", { headers }),
+        fetch("/api/courses",
+          {
+            credentials: "include",
+          }
+        ),
+        fetch("/api/admin/users", { credentials: "include", }),
       ])
 
       console.log("Courses response status:", coursesResponse.status)
@@ -155,13 +150,16 @@ export default function AdminDashboard() {
   }
 
   const fetchExistingMilestones = async (courseId: string) => {
-    if (!token) return
+    if (!user) return
 
     try {
       console.log("Fetching existing milestones for course:", courseId)
 
-      const headers = getAuthHeaders()
-      const response = await fetch(`/api/courses/${courseId}`, { headers })
+    
+      const response = await fetch(`/api/courses/${courseId}`, {  
+        method: "GET",
+        credentials: "include", // Important for session management
+       })
 
       console.log("Fetch milestones response status:", response.status)
 
@@ -241,7 +239,7 @@ export default function AdminDashboard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!token) {
+    if (!user) {
       alert("Session expired. Please log in again.")
       router.push("/login")
       return
@@ -250,7 +248,7 @@ export default function AdminDashboard() {
     try {
       console.log("Submitting course form")
 
-      const headers = getAuthHeaders()
+     
       const courseData = {
         ...formData,
         milestones: milestones.filter((m) => m.title.trim() !== ""),
@@ -265,7 +263,7 @@ export default function AdminDashboard() {
 
       const response = await fetch(url, {
         method,
-        headers,
+        credentials: "include", // Important for session management
         body: JSON.stringify(courseData),
       })
 
@@ -294,7 +292,7 @@ export default function AdminDashboard() {
   const handleDeleteCourse = async (courseId: string) => {
     if (!confirm("Are you sure you want to delete this course?")) return
 
-    if (!token) {
+    if (!user) {
       alert("Session expired. Please log in again.")
       router.push("/login")
       return
@@ -303,10 +301,10 @@ export default function AdminDashboard() {
     try {
       console.log("Deleting course:", courseId)
 
-      const headers = getAuthHeaders()
+      
       const response = await fetch(`/api/courses/${courseId}`, {
         method: "DELETE",
-        headers,
+        credentials: "include", // Important for session management
       })
 
       console.log("Delete response status:", response.status)

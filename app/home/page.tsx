@@ -43,6 +43,7 @@ export default function HomePage() {
   const fetchCourses = async () => {
     try {
       const response = await fetch("/api/courses")
+      
       const data = await response.json()
 
       if (data.success) {
@@ -66,6 +67,7 @@ export default function HomePage() {
       // For free courses, directly enroll
       try {
         const response = await fetch("/api/enroll", {
+          credentials: "include",
           method: "POST",
           headers: {
             "Content-Type": "application/json",

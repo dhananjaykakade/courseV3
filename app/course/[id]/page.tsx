@@ -37,7 +37,7 @@ interface ContentItem {
 }
 
 export default function CoursePage({ params }: { params: { id: string } }) {
-  const { user, token, loading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [course, setCourse] = useState<Course | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -53,7 +53,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     }
 
     fetchCourse()
-  }, [user, token, loading, params.id, router])
+  }, [user, loading, params.id, router])
 
   const fetchCourse = async () => {
     try {
@@ -63,11 +63,13 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       const headers: any = {}
 
       // If user is authenticated, get course with progress
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
+    
 
         // Try to get course with progress first
-        const progressResponse = await fetch(`${url}/progress`, { headers })
+        const progressResponse = await fetch(`${url}/progress`, { 
+          headers,
+          credentials: "include",
+         })
         console.log("Progress response status:", progressResponse.status)
 
         if (progressResponse.ok) {
@@ -80,10 +82,10 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             return
           }
         }
-      }
+      
 
       // Fallback to regular course fetch
-      const response = await fetch(url, { headers })
+      const response = await fetch(url, { credentials: "include" })
       console.log("Course response status:", response.status)
 
       const data = await response.json()
@@ -102,7 +104,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   }
 
   const handleEnroll = async () => {
-    if (!token || !course) return
+    if (!user || !course) return
 
     setIsEnrolling(true)
     try {
@@ -110,10 +112,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
       const response = await fetch(`/api/courses/${course.id}/enroll`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
       })
 
       console.log("Enroll response status:", response.status)
@@ -135,17 +134,14 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   }
 
   const handleMilestoneComplete = async (milestoneId: string) => {
-    if (!token || !course) return
+    if (!user || !course) return
 
     try {
       console.log("Marking milestone complete:", milestoneId)
 
       const response = await fetch(`/api/courses/${course.id}/progress`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        credentials: "include",
         body: JSON.stringify({ milestoneId }),
       })
 
