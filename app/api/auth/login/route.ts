@@ -3,57 +3,76 @@ import bcrypt from "bcryptjs"
 import { supabaseDb } from "@/lib/services/supabase-database"
 import { generateToken } from "@/lib/utils/jwt"
 import type { LoginRequest, AuthResponse } from "@/lib/types/auth"
+import { serialize } from "cookie"
 
 export async function POST(request: NextRequest) {
   try {
     const body: LoginRequest = await request.json()
     const { email, password } = body
 
-    // Validation
+    // Step 1: Validate Input
     if (!email || !password) {
-      return NextResponse.json<AuthResponse>(
-        { success: false, message: "Email and password are required" },
-        { status: 400 },
-      )
+      return errorResponse("Email and password are required", 400)
     }
 
-    // Find user
+    // Step 2: Find user by email
     const user = await supabaseDb.getUserByEmail(email)
     if (!user) {
-      return NextResponse.json<AuthResponse>({ success: false, message: "Invalid email or password" }, { status: 401 })
+      return errorResponse("Invalid email or password", 401)
     }
 
-    // Check password
+    // Step 3: Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      return NextResponse.json<AuthResponse>({ success: false, message: "Invalid email or password" }, { status: 401 })
+      return errorResponse("Invalid email or password", 401)
     }
 
-    // Check if email is verified
+    // Step 4: Check if email is verified
     if (!user.isEmailVerified) {
-      return NextResponse.json<AuthResponse>(
-        { success: false, message: "Please verify your email before logging in" },
-        { status: 403 },
-      )
+      return errorResponse("Please verify your email before logging in", 403)
     }
 
-    // Update last login
+    // Step 5: Update last login
     await supabaseDb.updateUser(user.id, { lastLogin: new Date() })
 
-    // Generate JWT token
+    // Step 6: Generate JWT token
     const token = generateToken(user)
 
-    // Return user without password
+    // Step 7: Strip password before sending response
     const { password: _, ...userWithoutPassword } = user
 
-    return NextResponse.json<AuthResponse>({
+    // Step 8 (Optional): Set JWT as HttpOnly cookie
+    const response = NextResponse.json<AuthResponse>({
       success: true,
       message: "Login successful",
       user: userWithoutPassword,
       token,
     })
+
+    response.headers.set(
+      "Set-Cookie",
+      serialize("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      }),
+    )
+
+    return response
   } catch (error) {
     console.error("Login error:", error)
-    return NextResponse.json<AuthResponse>({ success: false, message: "Internal server error" }, { status: 500 })
+    return errorResponse("Internal server error", 500)
   }
+}
+
+function errorResponse(message: string, status: number) {
+  return NextResponse.json<AuthResponse>(
+    {
+      success: false,
+      message,
+    },
+    { status },
+  )
 }

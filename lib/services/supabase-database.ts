@@ -146,7 +146,7 @@ class SupabaseDatabaseService {
       const { data, error } = await this.adminClient
         .from("verification_tokens")
         .select("*")
-        .eq("token", token)
+        .eq("token", token.trim())
         .eq("is_used", false)
         .single()
 
@@ -195,6 +195,7 @@ class SupabaseDatabaseService {
       console.error("Error cleaning up expired tokens:", error)
     }
   }
+
 
   // Course operations
   async getAllCourses(): Promise<any[]> {

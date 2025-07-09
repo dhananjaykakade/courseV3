@@ -1,3 +1,13 @@
+import nodemailer from "nodemailer"
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+})
+
 interface EmailOptions {
   to: string
   subject: string
@@ -7,11 +17,11 @@ interface EmailOptions {
 class EmailService {
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Simulate email sending - In production, use services like SendGrid, AWS SES, etc.
-      console.log("📧 Email sent:", {
+      await transporter.sendMail({
+        from: '"LearnHub" <trinity.co@gmail.com>',
         to: options.to,
         subject: options.subject,
-        timestamp: new Date().toISOString(),
+        html: options.html,
       })
 
       // Simulate network delay

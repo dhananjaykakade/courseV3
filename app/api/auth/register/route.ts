@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate verification token
-    let verificationToken: string
+    let verificationToken: string = ""
     try {
       verificationToken = generateVerificationToken()
       const expiresAt = new Date()

@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpen, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/context/auth-context"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -21,6 +23,14 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const router = useRouter()
+  const { user } = useAuth()
+
+  // Redirect logged-in users
+  if (user) {
+    router.push("/home")
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
