@@ -52,6 +52,7 @@ export default function AdminDashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [existingMilestones, setExistingMilestones] = useState<Milestone[]>([])
+  const [paymentStats, setPaymentStats] = useState<{ total: number; currency: string }>({ total: 0, currency: "INR" })
 
   // Form state
   const [formData, setFormData] = useState({
@@ -89,6 +90,40 @@ export default function AdminDashboard() {
   }, [user, loading, router])
 
 
+  // Handle payment total money count
+  useEffect(() => {
+    const fetchPaymentStats = async () => {
+      if (!user) return
+      try {
+        const response = await fetch("/api/admin/payments", {
+          credentials: "include",
+        })
+
+        if (response.status === 401) {
+          alert("Session expired. Please log in again.")
+          router.push("/login")
+          return
+        }
+
+        const data = await response.json()
+        console.log("Payment stats:", data)
+
+        if (data.success) {
+          // Handle payment stats if needed
+          setPaymentStats({
+            total: data.payments.total || 0,
+            currency: data.payments.currency || "INR",
+          })
+          console.log("Total payments:", data.payments)
+        } else {
+          console.error("Failed to fetch payment stats:", data.message)
+        }
+      } catch (error) {
+        console.error("Error fetching payment stats:", error)
+      }
+    }
+    fetchPaymentStats()
+  }, [user, router])
 
   const handleAuthError = (response: Response) => {
     if (response.status === 401) {
@@ -392,6 +427,8 @@ export default function AdminDashboard() {
     setMilestones(updated)
   }
 
+
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -435,6 +472,18 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Payments</CardTitle>
+              <span className="text-muted-foreground">
+                {paymentStats.total} {paymentStats.currency}
+              </span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">N/A</div>
             </CardContent>
           </Card>
         </div>

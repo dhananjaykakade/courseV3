@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { BookOpen, Eye, EyeOff, Loader2 } from "lucide-react"
+import { toast } from "@/components/ui/use-toast"
 import Link from "next/link"
 import { useAuth } from "@/lib/context/auth-context"
 
@@ -70,7 +71,7 @@ useEffect(() => {
       })
 
       const data = await response.json()
-      alert(data.message)
+      toast({ title: "Reset email sent", description: data.message })
     } catch (error) {
       console.error("Forgot password error:", error)
       setError("Failed to send reset email. Please try again.")

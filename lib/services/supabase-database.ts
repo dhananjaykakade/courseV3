@@ -729,26 +729,50 @@ class SupabaseDatabaseService {
     }
   }
   
+// get total payment amount from all payment orders
+  async getTotalPaymentAmount(): Promise<number> {
+    try {
+      const { data, error } = await this.adminClient
+        .from("payment_orders")
+        .select("amount")
+        .eq("status", "completed")
+
+      if (error) {
+        console.error("Error getting total payment amount:", error)
+        return 0
+      }
+
+      const totalAmount = data.reduce((sum: number, order: any) => sum + (order.amount || 0), 0)
+      return totalAmount
+    } catch (error) {
+      console.error("Error calculating total payment amount:", error)
+      return 0
+    }
+  } 
 
 
 
   // Get database stats
-  async getStats(): Promise<{ users: number; courses: number; tokens: number }> {
+  async getStats(): Promise<{ users: number; courses: number; tokens: number, payments: number }> {
     try {
-      const [usersResult, coursesResult, tokensResult] = await Promise.all([
+
+      const [usersResult, coursesResult, tokensResult ,paymentResult] = await Promise.all([
         this.adminClient.from("users").select("count"),
         this.adminClient.from("courses").select("count"),
         this.adminClient.from("verification_tokens").select("count"),
+        this.adminClient.from("payment_orders").select("count")
       ])
 
       return {
         users: usersResult.data?.[0]?.count || 0,
         courses: coursesResult.data?.[0]?.count || 0,
         tokens: tokensResult.data?.[0]?.count || 0,
+        payments: paymentResult.data?.[0]?.count || 0
+
       }
     } catch (error) {
       console.error("Error getting database stats:", error)
-      return { users: 0, courses: 0, tokens: 0 }
+      return { users: 0, courses: 0, tokens: 0, payments: 0  }
     }
   }
 

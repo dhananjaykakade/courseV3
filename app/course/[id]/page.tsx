@@ -11,6 +11,7 @@ import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { loadRazorpay } from "@/lib/utils/razorpay"; // Ensure this path is correct
+import { toast } from "@/components/ui/use-toast"
 
 
 interface Course {
@@ -125,10 +126,10 @@ const handleEnroll = async () => {
       console.log("Free course enroll response:", data);
 
       if (data.success) {
-        alert("Successfully enrolled in course!");
+        toast({ title: "Enrolled", description: "Successfully enrolled in course!" });
         fetchCourse();
       } else {
-        alert(data.message || "Failed to enroll in course");
+        toast({ title: "Enrollment failed", description: data.message || "Failed to enroll in course", variant: "destructive" });
       }
     } else {
       // 💰 Paid course - initiate Razorpay payment
@@ -141,14 +142,14 @@ const handleEnroll = async () => {
       console.log("Paid course enroll response:", data);
 
       if (!data.success) {
-        alert(data.message || "Payment initiation failed");
+        toast({ title: "Payment initiation failed", description: data.message || "Payment initiation failed", variant: "destructive" });
         return;
       }
 
       // 🧾 Load Razorpay SDK
       const razorpayLoaded = await loadRazorpay();
       if (!razorpayLoaded) {
-        alert("Failed to load Razorpay. Please try again.");
+        toast({ title: "Razorpay load failed", description: "Failed to load Razorpay. Please try again.", variant: "destructive" });
         return;
       }
 
@@ -176,13 +177,13 @@ const handleEnroll = async () => {
     });
     const verifyData = await verifyRes.json();
     if (verifyData.success) {
-      alert("Payment verified and enrollment successful!");
+      toast({ title: "Payment successful", description: "Payment verified and enrollment successful!" });
       fetchCourse(); // Refresh course data to reflect enrollment
     } else {
-      alert(verifyData.message || "Payment verification failed");
+      toast({ title: "Payment verification failed", description: verifyData.message || "Payment verification failed", variant: "destructive" });
     }
   } catch (err) {
-    alert("Something went wrong during payment verification.");
+    toast({ title: "Verification error", description: "Something went wrong during payment verification.", variant: "destructive" });
   }
 },
         prefill: {
@@ -198,7 +199,7 @@ const handleEnroll = async () => {
     }
   } catch (error) {
     console.error("Error enrolling in course:", error);
-    alert("Something went wrong while enrolling");
+    toast({ title: "Enrollment error", description: "Something went wrong while enrolling", variant: "destructive" });
   } finally {
     setIsEnrolling(false);
   }
@@ -240,11 +241,11 @@ const handleEnroll = async () => {
           setCurrentMilestone(currentIndex + 1)
         }
       } else {
-        alert(data.message || "Failed to update progress")
+        toast({ title: "Progress update failed", description: data.message || "Failed to update progress", variant: "destructive" })
       }
     } catch (error) {
       console.error("Error updating progress:", error)
-      alert("Failed to update progress")
+      toast({ title: "Progress update failed", description: "Failed to update progress", variant: "destructive" })
     }
   }
 
