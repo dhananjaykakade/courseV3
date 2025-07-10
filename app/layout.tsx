@@ -19,15 +19,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head />
-      <body className={inter.className}>
+      <head>
         {/* ✅ Google AdSense Script */}
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9047638897398182"
           crossOrigin="anonymous"
-          strategy="afterInteractive" // ensures it loads only on client
-        />
+          
+          />
+          </head>
+      <body className={inter.className}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
