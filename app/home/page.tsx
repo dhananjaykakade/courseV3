@@ -17,7 +17,7 @@ interface Course {
   price: number
   duration: string
   image: string
-  isEnrolled?: boolean
+  isPurchased?: boolean
 }
 
 type CourseCategory = "all" | "free" | "paid"
@@ -48,7 +48,7 @@ export default function HomePage() {
 
       if (data.success) {
         // You'll need to modify your API to include enrollment status
-        // For now, I'm assuming the API returns courses with isEnrolled field
+        // For now, I'm assuming the API returns courses with isPurchased field
         setCourses(data.courses)
       }
     } catch (error) {
@@ -80,7 +80,7 @@ export default function HomePage() {
           setCourses(prev => 
             prev.map(course => 
               course.id === courseId 
-                ? { ...course, isEnrolled: true }
+                ? { ...course, isPurchased: true }
                 : course
             )
           )
@@ -198,7 +198,7 @@ export default function HomePage() {
                         <Badge variant={course.isFree ? "secondary" : "destructive"}>
                           {course.isFree ? "Free" : `$${course.price}`}
                         </Badge>
-                        {course.isEnrolled && (
+                        {course.isPurchased && (
                           <Badge variant="default" className="bg-green-500">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Enrolled
@@ -223,7 +223,7 @@ export default function HomePage() {
                       )}
                     </div>
 
-                    {course.isEnrolled ? (
+                    {course.isPurchased ? (
                       <Button
                         className="w-full"
                         onClick={(e) => {

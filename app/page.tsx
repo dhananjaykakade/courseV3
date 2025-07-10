@@ -120,10 +120,19 @@ function CourseCard({ course }: { course: any }) {
         <Link href={`/course/${course.id}`}>
           <Button
             className={`w-full font-semibold ${
-              course.isFree ? "bg-black text-white hover:bg-gray-800" : "bg-red-600 text-white hover:bg-red-700"
+              course.isPurchased
+                ? "bg-green-600 text-white hover:bg-green-700"
+                : course.isFree
+                ? "bg-black text-white hover:bg-gray-800"
+                : "bg-red-600 text-white hover:bg-red-700"
             }`}
           >
-            {course.isFree ? (
+            {course.isPurchased ? (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                View Course
+              </>
+            ) : course.isFree ? (
               <>
                 <Play className="w-4 h-4 mr-2" />
                 Start Learning

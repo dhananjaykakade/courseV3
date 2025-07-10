@@ -2,10 +2,25 @@ import { type NextRequest, NextResponse } from "next/server"
 import { supabaseDb } from "@/lib/services/supabase-database"
 import { authenticateUser, requireRole } from "@/lib/middleware/auth"
 
-// GET - Get all courses (public)
-export async function GET() {
+// GET - Get all courses (public) – include the current user's enrollment status if authenticated
+export async function GET(request: NextRequest) {
   try {
+    // Fetch all courses (generic)
     const courses = await supabaseDb.getAllCourses()
+
+    // Attempt to authenticate user – this helper never throws, it just returns error if not logged in
+    const { user } = await authenticateUser(request)
+
+    if (user) {
+      // Get list of courses the user is enrolled in
+      const enrollments = await supabaseDb.getUserEnrollments(user.id)
+      const enrolledIds = new Set(enrollments.map((e: any) => e.id || e.courseId || e.course_id))
+
+      // Attach isPurchased flag
+      for (const course of courses) {
+        course.isPurchased = enrolledIds.has(course.id)
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -10,6 +10,8 @@ import { CheckCircle, Circle, Clock, DollarSign, Play, FileText, Download } from
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
 import { VideoPlayer } from "@/components/video-player"
+import { loadRazorpay } from "@/lib/utils/razorpay"; // Ensure this path is correct
+
 
 interface Course {
   id: string
@@ -103,35 +105,105 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     }
   }
 
-  const handleEnroll = async () => {
-    if (!user || !course) return
 
-    setIsEnrolling(true)
-    try {
-      console.log("Enrolling in course:", course.id)
+const handleEnroll = async () => {
+  if (!user || !course) return;
 
+  setIsEnrolling(true);
+
+  try {
+    console.log("Enrolling in course:", course.id);
+
+    if (course.price === 0) {
+      // 🔓 Free course enrollment
       const response = await fetch(`/api/courses/${course.id}/enroll`, {
         method: "POST",
         credentials: "include",
-      })
+      });
 
-      console.log("Enroll response status:", response.status)
-      const data = await response.json()
-      console.log("Enroll response data:", data)
+      const data = await response.json();
+      console.log("Free course enroll response:", data);
 
       if (data.success) {
-        alert("Successfully enrolled in course!")
-        fetchCourse() // Refresh course data
+        alert("Successfully enrolled in course!");
+        fetchCourse();
       } else {
-        alert(data.message || "Failed to enroll in course")
+        alert(data.message || "Failed to enroll in course");
       }
-    } catch (error) {
-      console.error("Error enrolling in course:", error)
-      alert("Failed to enroll in course")
-    } finally {
-      setIsEnrolling(false)
+    } else {
+      // 💰 Paid course - initiate Razorpay payment
+      const response = await fetch(`/api/courses/${course.id}/enroll/paid`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      console.log("Paid course enroll response:", data);
+
+      if (!data.success) {
+        alert(data.message || "Payment initiation failed");
+        return;
+      }
+
+      // 🧾 Load Razorpay SDK
+      const razorpayLoaded = await loadRazorpay();
+      if (!razorpayLoaded) {
+        alert("Failed to load Razorpay. Please try again.");
+        return;
+      }
+
+      const options = {
+        key: data.razorpayKeyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Course Purchase",
+        description: course.title,
+        order_id: data.orderId,
+        handler: async function (response: any) {
+  try {
+    // Send payment details to backend for verification
+    const verifyRes = await fetch(`/api/courses/${course.id}/enroll/verify-payment`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+      }),
+    });
+    const verifyData = await verifyRes.json();
+    if (verifyData.success) {
+      alert("Payment verified and enrollment successful!");
+      fetchCourse(); // Refresh course data to reflect enrollment
+    } else {
+      alert(verifyData.message || "Payment verification failed");
     }
+  } catch (err) {
+    alert("Something went wrong during payment verification.");
   }
+},
+        prefill: {
+          email: user.email,
+        },
+        theme: {
+          color: "#6366f1",
+        },
+      }
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+    }
+  } catch (error) {
+    console.error("Error enrolling in course:", error);
+    alert("Something went wrong while enrolling");
+  } finally {
+    setIsEnrolling(false);
+  }
+};
+
 
   const handleMilestoneComplete = async (milestoneId: string) => {
     if (!user || !course) return
