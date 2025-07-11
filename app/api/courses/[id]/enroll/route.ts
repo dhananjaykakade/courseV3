@@ -7,7 +7,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   try {
 
     const { user, error } = await authenticateUser(request)
-
     if (error || !user) {
       return NextResponse.json({ success: false, message: error || "Authentication required" }, { status: 401 })
     }
@@ -36,7 +35,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       message: "Successfully enrolled in course",
     })
   } catch (error) {
-    console.error("Error enrolling in course:", error)
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
 }

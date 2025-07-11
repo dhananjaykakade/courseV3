@@ -101,7 +101,6 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     if (!user) {
-      console.log("No token available")
       router.push("/login")
       return
     }
@@ -119,8 +118,6 @@ export default function AdminDashboard() {
         fetch("/api/admin/users", { credentials: "include", }),
       ])
 
-      console.log("Courses response status:", coursesResponse.status)
-      console.log("Users response status:", usersResponse.status)
 
       if (handleAuthError(coursesResponse) || handleAuthError(usersResponse)) {
         return
@@ -129,8 +126,7 @@ export default function AdminDashboard() {
       const coursesData = await coursesResponse.json()
       const usersData = await usersResponse.json()
 
-      console.log("Courses data:", coursesData)
-      console.log("Users data:", usersData)
+      
 
       if (coursesData.success) {
         setCourses(coursesData.courses)
@@ -153,7 +149,6 @@ export default function AdminDashboard() {
     if (!user) return
 
     try {
-      console.log("Fetching existing milestones for course:", courseId)
 
     
       const response = await fetch(`/api/courses/${courseId}`, {  
@@ -161,14 +156,13 @@ export default function AdminDashboard() {
         credentials: "include", // Important for session management
        })
 
-      console.log("Fetch milestones response status:", response.status)
 
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
-      console.log("Existing milestones data:", data)
+    
 
       if (data.success && data.course.milestones) {
         const formattedMilestones = data.course.milestones.map((milestone: any) => ({
@@ -178,7 +172,6 @@ export default function AdminDashboard() {
           videoUrl: milestone.content.find((c: any) => c.type === "video")?.data.url || "",
         }))
 
-        console.log("Formatted milestones:", formattedMilestones)
         setExistingMilestones(formattedMilestones)
         setMilestones(
           formattedMilestones.length > 0
@@ -246,7 +239,6 @@ export default function AdminDashboard() {
     }
 
     try {
-      console.log("Submitting course form")
 
      
       const courseData = {
@@ -254,12 +246,10 @@ export default function AdminDashboard() {
         milestones: milestones.filter((m) => m.title.trim() !== ""),
       }
 
-      console.log("Course data:", courseData)
 
       const url = editingCourse ? `/api/courses/${editingCourse.id}` : "/api/courses"
       const method = editingCourse ? "PUT" : "POST"
 
-      console.log("Making request to:", url, "with method:", method)
 
       const response = await fetch(url, {
         method,
@@ -267,14 +257,12 @@ export default function AdminDashboard() {
         body: JSON.stringify(courseData),
       })
 
-      console.log("Submit response status:", response.status)
 
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
-      console.log("Submit response data:", data)
 
       if (data.success) {
         alert(editingCourse ? "Course updated successfully!" : "Course created successfully!")
@@ -299,7 +287,6 @@ export default function AdminDashboard() {
     }
 
     try {
-      console.log("Deleting course:", courseId)
 
       
       const response = await fetch(`/api/courses/${courseId}`, {
@@ -307,14 +294,12 @@ export default function AdminDashboard() {
         credentials: "include", // Important for session management
       })
 
-      console.log("Delete response status:", response.status)
 
       if (handleAuthError(response)) {
         return
       }
 
       const data = await response.json()
-      console.log("Delete response data:", data)
 
       if (data.success) {
         alert("Course deleted successfully!")

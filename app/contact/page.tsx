@@ -33,7 +33,6 @@ export default function ContactPage() {
         throw new Error("Failed")
       }
     } catch (err) {
-      console.error(err)
       setStatus("error")
     }
   }

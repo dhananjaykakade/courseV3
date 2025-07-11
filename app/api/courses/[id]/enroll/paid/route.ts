@@ -43,7 +43,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       razorpayKeyId: paymentResult.razorpayKeyId,
     });
   } catch (error) {
-    console.error("Error enrolling in paid course:", error);
     return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }
