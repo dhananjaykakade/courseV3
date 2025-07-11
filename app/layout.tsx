@@ -29,6 +29,24 @@ export default function RootLayout({
           />
           </head>
       <body className={inter.className}>
+        {process.env.NODE_ENV === "production" && (
+          <Script
+            id="disable-devtools"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `(() => {
+                const forbidden = ["F12", "I", "J", "C", "U"];
+                const block = (e) => { e.preventDefault(); e.stopPropagation(); };
+                window.addEventListener("contextmenu", block);
+                window.addEventListener("keydown", (e) => {
+                  if (e.key === "F12" || (e.ctrlKey && e.shiftKey && forbidden.includes(e.key)) || (e.ctrlKey && e.key === "U")) {
+                    block(e);
+                  }
+                });
+              })();`,
+            }}
+          />
+        )}
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

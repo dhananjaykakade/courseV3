@@ -13,5 +13,15 @@ export async function POST() {
       maxAge: 0,
     }),
   )
+  res.headers.append(
+    "Set-Cookie",
+    serialize("logged_in", "", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    }),
+  )
   return res
 }

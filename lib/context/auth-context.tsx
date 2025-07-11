@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true)
     try {
       const res = await fetch("/api/auth/profile", {
-        credentials: "include", // Include cookies
+        credentials: "include", 
       })
       if (!res.ok) throw new Error("Unauthorized")
       const data = await res.json()
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        credentials: "include", // Important for setting cookie
+        credentials: "include", 
         headers: {
           "Content-Type": "application/json",
         },

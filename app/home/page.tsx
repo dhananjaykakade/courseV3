@@ -68,13 +68,12 @@ export default function HomePage() {
               isPurchased: !!enrollment
             }
           })
-          
                     setCourses(coursesWithEnrollments)
         } else {
         }
       } catch (enrollmentError) {
         console.error("Error fetching enrollments:", enrollmentError)
-        // Continue without enrollment data - courses will show as not purchased
+        // Continue without data - courses will show as not purchased
       }
 
     } catch (error) {

@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       token,
     })
 
-    response.headers.set(
+    response.headers.append(
       "Set-Cookie",
       serialize("token", token, {
         httpOnly: true,
@@ -57,6 +57,17 @@ export async function POST(request: NextRequest) {
         sameSite: "strict",
         path: "/",
         maxAge: 60 * 60 * 24 * 7, // 7 days
+      }),
+    )
+
+    response.headers.append(
+      "Set-Cookie",
+      serialize("logged_in", "1", {
+        httpOnly: false,
+        secure: process.env.NEXT_PUBLIC_ENVIRONMENT === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
       }),
     )
 

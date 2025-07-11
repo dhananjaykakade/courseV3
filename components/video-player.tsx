@@ -49,7 +49,6 @@ export function VideoPlayer({ src, className = "", onVideoComplete, onProgress }
     }
 
     const handleVideoEnd = () => {
-      console.log("Video ended - triggering completion")
       setIsCompleted(true)
       setIsPlaying(false)
       onVideoComplete?.()
@@ -67,7 +66,6 @@ export function VideoPlayer({ src, className = "", onVideoComplete, onProgress }
     const handleVideoError = (e: Event) => {
       const target = e.target as HTMLVideoElement
       const error = target.error
-      console.error("Video error:", error)
 
       setHasError(true)
       setIsLoading(false)
@@ -136,7 +134,6 @@ export function VideoPlayer({ src, className = "", onVideoComplete, onProgress }
         await video.play()
       }
     } catch (error) {
-      console.error("Play error:", error)
       setHasError(true)
       setErrorMessage("Failed to play video")
     }
@@ -212,6 +209,9 @@ export function VideoPlayer({ src, className = "", onVideoComplete, onProgress }
         onClick={togglePlay}
         crossOrigin="anonymous"
         preload="metadata"
+        controlsList="nodownload noremoteplayback"
+        disablePictureInPicture
+        onContextMenu={(e) => e.preventDefault()}
       />
 
       {/* Loading State */}
