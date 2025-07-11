@@ -29,7 +29,6 @@ class DatabaseService {
     try {
       await this.initializeAdminUser()
       this.isInitialized = true
-      console.log("✅ Database service initialized successfully")
     } catch (error) {
       console.error("❌ Database initialization failed:", error)
       this.isInitialized = false
@@ -56,7 +55,6 @@ class DatabaseService {
       }
 
       this.users.set(adminId, adminUser)
-      console.log("👤 Admin user initialized:", adminUser.email)
     } catch (error) {
       console.error("Failed to initialize admin user:", error)
       throw error
@@ -89,7 +87,6 @@ class DatabaseService {
       }
 
       this.users.set(id, user)
-      console.log("✅ User created successfully:", user.email)
       return user
     } catch (error) {
       console.error("❌ Error creating user:", error)
@@ -156,7 +153,6 @@ class DatabaseService {
       }
 
       this.users.set(id, updatedUser)
-      console.log("✅ User updated successfully:", updatedUser.email)
       return updatedUser
     } catch (error) {
       console.error("❌ Error updating user:", error)
@@ -174,7 +170,6 @@ class DatabaseService {
 
       const result = this.users.delete(id)
       if (result) {
-        console.log("✅ User deleted successfully:", id)
       }
       return result
     } catch (error) {
@@ -200,7 +195,6 @@ class DatabaseService {
       }
 
       this.verificationTokens.set(id, token)
-      console.log("✅ Verification token created:", token.type, "for user:", token.userId)
       return token
     } catch (error) {
       console.error("❌ Error creating verification token:", error)
@@ -246,7 +240,6 @@ class DatabaseService {
 
       token.isUsed = true
       this.verificationTokens.set(tokenId, token)
-      console.log("✅ Token marked as used:", tokenId)
       return true
     } catch (error) {
       console.error("❌ Error marking token as used:", error)
@@ -269,7 +262,6 @@ class DatabaseService {
       }
 
       if (cleanedCount > 0) {
-        console.log(`🧹 Cleaned up ${cleanedCount} expired tokens`)
       }
     } catch (error) {
       console.error("❌ Error cleaning up expired tokens:", error)
@@ -297,7 +289,6 @@ class DatabaseService {
       const isHealthy = this.isInitialized && hasUsers && hasAdminUser
 
       if (isHealthy) {
-        console.log("✅ Database health check passed")
       } else {
         console.warn("⚠️ Database health check failed", {
           initialized: this.isInitialized,

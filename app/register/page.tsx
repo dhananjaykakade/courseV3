@@ -70,11 +70,7 @@ export default function RegisterPage() {
     }
 
     try {
-      console.log("Submitting registration:", {
-        name: formData.name,
-        email: formData.email,
-        hasPassword: !!formData.password,
-      })
+
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -89,8 +85,6 @@ export default function RegisterPage() {
         }),
       })
 
-      console.log("Response status:", response.status)
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
       // Check if response is JSON
       const contentType = response.headers.get("content-type")
@@ -102,14 +96,11 @@ export default function RegisterPage() {
       }
 
       const data = await response.json()
-      console.log("Response data:", data)
 
       if (data.success) {
         setSuccess(true)
-        console.log("Registration successful")
       } else {
         setError(data.message || "Registration failed")
-        console.error("Registration failed:", data.message)
       }
     } catch (error) {
       console.error("Registration error:", error)
