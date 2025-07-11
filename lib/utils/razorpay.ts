@@ -49,8 +49,6 @@ export const loadRazorpay = (): Promise<boolean> => {
   razorpayKeyId?: string;
 }> {
   try {
-    console.log("Initiating payment for user:", userId, "for course:", courseId);
-
     // Create a unique receipt ID (can be saved to DB for tracking) it should be unique for each transaction and less than 40 characters
     const receiptId = `receipt_${userId}_${courseId}_${Date.now()}`.slice(0, 40);  // Ensure receipt ID is unique and less than 40 characters
     // make recipt id less than 40 characters

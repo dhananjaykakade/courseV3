@@ -291,7 +291,6 @@ class SupabaseDatabaseService {
 
   async createCourse(courseData: any): Promise<any | null> {
     try {
-      console.log("Creating course with data:", courseData)
 
       const { data, error } = await this.adminClient
         .from("courses")
@@ -307,16 +306,13 @@ class SupabaseDatabaseService {
         .single()
 
       if (error) {
-        console.error("Supabase create course error:", error)
         return null
       }
 
-      console.log("Course created successfully:", data.id)
       const course = this.mapCourseFromDb(data)
 
       // Create milestones if provided
       if (courseData.milestones && courseData.milestones.length > 0) {
-        console.log("Creating milestones for course:", course.id)
         await this.createMilestones(course.id, courseData.milestones)
       }
 
@@ -329,11 +325,9 @@ class SupabaseDatabaseService {
 
   async createMilestones(courseId: string, milestones: any[]): Promise<void> {
     try {
-      console.log("Creating milestones for course:", courseId, "Count:", milestones.length)
 
       for (let i = 0; i < milestones.length; i++) {
         const milestone = milestones[i]
-        console.log(`Creating milestone ${i + 1}:`, milestone.title)
 
         // Create milestone
         const { data: milestoneData, error: milestoneError } = await this.adminClient
@@ -351,7 +345,6 @@ class SupabaseDatabaseService {
           continue
         }
 
-        console.log("Milestone created:", milestoneData.id)
 
         // Create milestone content
         const contentItems = []
@@ -400,13 +393,11 @@ class SupabaseDatabaseService {
 
         // Insert all content items
         if (contentItems.length > 0) {
-          console.log(`Creating ${contentItems.length} content items for milestone:`, milestoneData.id)
           const { error: contentError } = await this.adminClient.from("milestone_content").insert(contentItems)
 
           if (contentError) {
             console.error("Error creating milestone content:", contentError)
           } else {
-            console.log("Milestone content created successfully")
           }
         }
       }
@@ -417,7 +408,6 @@ class SupabaseDatabaseService {
 
   async updateCourse(id: string, courseData: any): Promise<any | null> {
     try {
-      console.log("Updating course:", id, "with data:", courseData)
 
       const updateData: any = {}
 
@@ -431,15 +421,12 @@ class SupabaseDatabaseService {
       const { data, error } = await this.adminClient.from("courses").update(updateData).eq("id", id).select().single()
 
       if (error) {
-        console.error("Supabase update course error:", error)
         return null
       }
 
-      console.log("Course updated successfully")
 
       // Handle milestones update
       if (courseData.milestones && courseData.milestones.length > 0) {
-        console.log("Updating milestones for course:", id)
 
         // Delete existing milestones and their content
         await this.deleteMilestones(id)
@@ -457,7 +444,6 @@ class SupabaseDatabaseService {
 
   async deleteMilestones(courseId: string): Promise<void> {
     try {
-      console.log("Deleting existing milestones for course:", courseId)
 
       // First delete milestone content
       const { data: milestones } = await this.adminClient.from("milestones").select("id").eq("course_id", courseId)
@@ -481,7 +467,6 @@ class SupabaseDatabaseService {
         if (milestoneError) {
           console.error("Error deleting milestones:", milestoneError)
         } else {
-          console.log("Existing milestones deleted successfully")
         }
       }
     } catch (error) {
@@ -512,7 +497,6 @@ class SupabaseDatabaseService {
   async enrollUser(userId: string, courseId: string): Promise<boolean> {
     // Old simple enrollment without payment tracking
     try {
-      console.log("Attempting to enroll user:", { userId, courseId });
 
       const { data, error } = await this.adminClient
         .from("user_enrollments")
@@ -528,7 +512,6 @@ class SupabaseDatabaseService {
         return false;
       }
 
-      console.log("Successfully enrolled user:", data);
       return true;
     } catch (error) {
       console.error("Error enrolling user:", error);
@@ -555,7 +538,6 @@ class SupabaseDatabaseService {
     }
   ): Promise<{ success: boolean; message?: string }> {
     try {
-      console.log("Attempting to enroll paid user:", { userId, courseId, paymentInfo });
 
       const insertData: Record<string, any> = {
         user_id: userId,
@@ -586,7 +568,6 @@ class SupabaseDatabaseService {
         return { success: false, message: error.message };
       }
 
-      console.log("Enrollment + payment record created:", data);
       return { success: true };
     } catch (error: any) {
       console.error("Unexpected error enrolling paid user:", error);

@@ -57,13 +57,11 @@ export default function HomePage() {
         const enrollmentsData = await enrollmentsResponse.json()
 
         if (enrollmentsData.success && enrollmentsData.enrollments) {
-          console.log("Enrollments data:", enrollmentsData.enrollments) // Debug log
           
           const coursesWithEnrollments = coursesData.courses.map((course: Course) => {
             const enrollment = enrollmentsData.enrollments.find(
               (enrollment: any) => enrollment.id === course.id
             )
-            console.log(`Course ${course.id} enrollment:`, enrollment) // Debug log
             
             return {
               ...course,
@@ -71,10 +69,8 @@ export default function HomePage() {
             }
           })
           
-          console.log("Courses with enrollments:", coursesWithEnrollments) // Debug log
           setCourses(coursesWithEnrollments)
         } else {
-          console.log("No enrollments data or fetch failed:", enrollmentsData)
         }
       } catch (enrollmentError) {
         console.error("Error fetching enrollments:", enrollmentError)

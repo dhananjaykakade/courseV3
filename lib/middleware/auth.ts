@@ -18,7 +18,6 @@ export async function authenticateUser(request: NextRequest): Promise<{ user: Us
       : cookieToken
 
     if (!token) {
-      console.log("No token found in cookies or header")
       return { user: null, error: "Unauthorized" }
     }
 
