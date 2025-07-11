@@ -69,7 +69,7 @@ export default function HomePage() {
             }
           })
           
-          setCourses(coursesWithEnrollments)
+                    setCourses(coursesWithEnrollments)
         } else {
         }
       } catch (enrollmentError) {
