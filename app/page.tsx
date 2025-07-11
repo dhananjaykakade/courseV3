@@ -8,8 +8,32 @@ import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/navbar"
 
-// Dummy data
-const featuredCourses = [
+import { useEffect, useState } from "react"
+
+// Latest 3 courses state
+const useLatestCourses = () => {
+  const [courses, setCourses] = useState<any[]>([])
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res = await fetch("/api/courses")
+        const data = await res.json()
+        if (data.success) {
+          const latest = (data.courses as any[])
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 3)
+          setCourses(latest)
+        }
+      } catch (err) {
+        console.error("Failed to load courses", err)
+      }
+    })()
+  }, [])
+  return courses
+}
+
+// Dummy data (fallback while fetch runs)
+const initialCourses = [
   {
     id: 1,
     title: "Introduction to Web Development",
@@ -41,6 +65,8 @@ const featuredCourses = [
     image: "/placeholder.svg?height=200&width=300",
   },
 ]
+
+// hook will be invoked inside component
 
 const benefits = [
   {
@@ -142,6 +168,7 @@ function CourseCard({ course }: { course: any }) {
 }
 
 export default function LandingPage() {
+  const featuredCourses = useLatestCourses()
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -184,7 +211,7 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600">Start your learning journey with our most popular courses</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCourses.map((course) => (
+            {(featuredCourses && featuredCourses.length ? featuredCourses : initialCourses).map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
@@ -223,41 +250,7 @@ export default function LandingPage() {
 
       {/* Testimonials */}
       <section className="py-16 bg-black text-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Students Say</h2>
-            <p className="text-xl text-gray-300">Join thousands of satisfied learners</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-gray-900 border-gray-700 text-white">
-                <CardHeader>
-                  <div className="flex items-center mb-4">
-                    <Image
-                      src={testimonial.avatar || "/placeholder.svg"}
-                      alt={testimonial.name}
-                      width={60}
-                      height={60}
-                      className="rounded-full mr-4"
-                    />
-                    <div>
-                      <h4 className="font-semibold">{testimonial.name}</h4>
-                      <p className="text-gray-400 text-sm">{testimonial.role}</p>
-                    </div>
-                  </div>
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-300">"{testimonial.content}"</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+ 
       </section>
 
       {/* Footer */}

@@ -8,25 +8,21 @@ import { initiatePayment } from "@/lib/utils/razorpay"; // Ensure this path is c
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    console.log("POST /api/courses/[id]/enroll/paid - Course ID:", params.id);
 
     const { user, error } = await authenticateUser(request);
     if (error || !user) {
-      console.log("Authentication failed:", error);
       return NextResponse.json({ success: false, message: error || "Authentication required" }, { status: 401 });
     }
 
     // Fetch course
     const course = await supabaseDb.getCourseById(params.id);
     if (!course) {
-      console.log("Course not found");
       return NextResponse.json({ success: false, message: "Course not found" }, { status: 404 });
     }
 
     // Prevent double enrollment
     const isAlreadyEnrolled = await supabaseDb.isUserEnrolled(user.id, params.id);
     if (isAlreadyEnrolled) {
-      console.log("User already enrolled");
       return NextResponse.json({ success: false, message: "Already enrolled in this course" }, { status: 400 });
     }
 
