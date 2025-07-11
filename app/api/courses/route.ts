@@ -7,9 +7,12 @@ export async function GET() {
   try {
     const courses = await supabaseDb.getAllCourses()
 
+
     return NextResponse.json({
       success: true,
       courses,
+      message: "Courses fetched successfully",
+  
     })
   } catch (error) {
     console.error("Error fetching courses:", error)
