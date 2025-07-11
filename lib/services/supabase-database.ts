@@ -627,23 +627,29 @@ class SupabaseDatabaseService {
     }
   }
 
-  // Milestone progress operations
   async markMilestoneComplete(userId: string, courseId: string, milestoneId: string): Promise<boolean> {
     try {
-      // Insert milestone progress
-      const { error: progressError } = await this.adminClient.from("user_milestone_progress").insert({
-        user_id: userId,
-        course_id: courseId,
-        milestone_id: milestoneId,
-      })
+      // Upsert milestone progress (avoids duplicate key error and reduces latency)
+      const { error: progressError } = await this.adminClient
+        .from("user_milestone_progress")
+        .upsert(
+          {
+            user_id: userId,
+            course_id: courseId,
+            milestone_id: milestoneId,
+          },
+          {
+            onConflict: "user_id,course_id,milestone_id",
+            ignoreDuplicates: true,
+          }
+        )
 
-      if (progressError && progressError.code !== "23505") {
-        // Ignore duplicate key error
+      if (progressError) {
         console.error("Error marking milestone complete:", progressError)
         return false
       }
 
-      // Update overall course progress
+      // Re-calculate overall course progress
       await this.updateCourseProgress(userId, courseId)
 
       return true
@@ -655,18 +661,21 @@ class SupabaseDatabaseService {
 
   async updateCourseProgress(userId: string, courseId: string): Promise<void> {
     try {
-      // Get total milestones for course
-      const { data: milestones } = await this.adminClient.from("milestones").select("id").eq("course_id", courseId)
+      // Fetch milestone counts in parallel to minimise latency
+      const [totalResult, completedResult] = await Promise.all([
+        this.adminClient
+          .from("milestones")
+          .select("*", { count: "exact", head: true })
+          .eq("course_id", courseId),
+        this.adminClient
+          .from("user_milestone_progress")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("course_id", courseId),
+      ])
 
-      // Get completed milestones for user
-      const { data: completedMilestones } = await this.adminClient
-        .from("user_milestone_progress")
-        .select("milestone_id")
-        .eq("user_id", userId)
-        .eq("course_id", courseId)
-
-      const totalMilestones = milestones?.length || 0
-      const completedCount = completedMilestones?.length || 0
+      const totalMilestones = totalResult.count ?? 0
+      const completedCount = completedResult.count ?? 0
       const progress = totalMilestones > 0 ? (completedCount / totalMilestones) * 100 : 0
 
       // Update enrollment progress
@@ -675,13 +684,15 @@ class SupabaseDatabaseService {
         updateData.completed_at = new Date().toISOString()
       }
 
-      await this.adminClient.from("user_enrollments").update(updateData).eq("user_id", userId).eq("course_id", courseId)
+      await this.adminClient
+        .from("user_enrollments")
+        .update(updateData)
+        .eq("user_id", userId)
+        .eq("course_id", courseId)
     } catch (error) {
       console.error("Error updating course progress:", error)
     }
   }
-
-  // Get all users (admin only)
   async getAllUsers(): Promise<User[]> {
     try {
       const { data, error } = await this.adminClient.from("users").select("*").order("created_at", { ascending: false })
