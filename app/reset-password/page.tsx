@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center text-2xl font-bold text-black">
               <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-              LearnHub
+              Trinity Courses
             </Link>
           </div>
 
@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center text-2xl font-bold text-black">
               <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-              LearnHub
+              Trinity Courses
             </Link>
           </div>
 
@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-2xl font-bold text-black">
             <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-            LearnHub
+            Trinity Courses
           </Link>
         </div>
 
