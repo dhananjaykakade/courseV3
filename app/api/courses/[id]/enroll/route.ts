@@ -5,11 +5,9 @@ import { authenticateUser } from "@/lib/middleware/auth"
 // POST - Enroll user in course
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // added logging to track the course ID being enrolled
 
     const { user, error } = await authenticateUser(request)
     if (error || !user) {
-      console.log("Authentication failed:", error)
       return NextResponse.json({ success: false, message: error || "Authentication required" }, { status: 401 })
     }
 
