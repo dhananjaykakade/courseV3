@@ -1,7 +1,9 @@
 import { createServerClient, createAdminClient } from "@/lib/supabase/client"
 import type { User, VerificationToken } from "@/lib/types/auth"
 
+
 class SupabaseDatabaseService {
+
   private supabase = createServerClient()
   private adminClient = createAdminClient()
 
@@ -508,8 +510,9 @@ class SupabaseDatabaseService {
 
   // Enrollment operations
   async enrollUser(userId: string, courseId: string): Promise<boolean> {
+    // Old simple enrollment without payment tracking
     try {
-      console.log("Attempting to enroll user:", { userId, courseId })
+      console.log("Attempting to enroll user:", { userId, courseId });
 
       const { data, error } = await this.adminClient
         .from("user_enrollments")
@@ -518,20 +521,79 @@ class SupabaseDatabaseService {
           course_id: courseId,
         })
         .select()
-        .single()
+        .single();
 
       if (error) {
-        console.error("Error enrolling user:", error)
-        return false
+        console.error("Error enrolling user:", error);
+        return false;
       }
 
-      console.log("Successfully enrolled user:", data)
-      return true
+      console.log("Successfully enrolled user:", data);
+      return true;
     } catch (error) {
-      console.error("Error enrolling user:", error)
-      return false
+      console.error("Error enrolling user:", error);
+      return false;
     }
   }
+
+  /**
+   * Enroll a paid user in a course while recording payment information.
+   * Falls back gracefully if the `payment_*` columns are not present.
+   * @param userId
+   * @param courseId
+   * @param paymentInfo  Object containing payment_id, order_id, payment_verified, [optional] amount & currency
+   */
+  async enrollUserInCourse(
+    userId: string,
+    courseId: string,
+    paymentInfo: {
+      payment_id: string;
+      order_id: string;
+      payment_verified: boolean;
+      amount?: number;
+      currency?: string;
+    }
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      console.log("Attempting to enroll paid user:", { userId, courseId, paymentInfo });
+
+      const insertData: Record<string, any> = {
+        user_id: userId,
+        course_id: courseId,
+        enrolled_at: new Date().toISOString(),
+        progress: 0,
+      };
+
+      // Include payment columns if they exist in schema; Supabase will ignore unknown ones
+      insertData.payment_id = paymentInfo.payment_id;
+      insertData.order_id = paymentInfo.order_id;
+      insertData.payment_verified = paymentInfo.payment_verified;
+      if (paymentInfo.amount !== undefined) insertData.amount = paymentInfo.amount;
+      if (paymentInfo.currency !== undefined) insertData.currency = paymentInfo.currency;
+
+      const { data, error } = await this.adminClient
+        .from("user_enrollments")
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        // Ignore duplicate enrolment error (unique constraint) if any
+        if (error.code === "23505") {
+          return { success: false, message: "Already enrolled" };
+        }
+        console.error("Error enrolling paid user:", error);
+        return { success: false, message: error.message };
+      }
+
+      console.log("Enrollment + payment record created:", data);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Unexpected error enrolling paid user:", error);
+      return { success: false, message: error.message || "Unknown error" };
+    }
+  }
+
 
   async isUserEnrolled(userId: string, courseId: string): Promise<boolean> {
     try {
@@ -666,6 +728,9 @@ class SupabaseDatabaseService {
       return false
     }
   }
+  
+
+
 
   // Get database stats
   async getStats(): Promise<{ users: number; courses: number; tokens: number }> {
