@@ -18,14 +18,11 @@ class EmailService {
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
       await transporter.sendMail({
-        from: '"LearnHub" <trinity.co@gmail.com>',
+        from: '"Trinity Courses" <trinity.co@gmail.com>',
         to: options.to,
         subject: options.subject,
         html: options.html,
       })
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       return true
     } catch (error) {
@@ -42,7 +39,7 @@ class EmailService {
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Verify Your Email - LearnHub</title>
+          <title>Verify Your Email - Trinity Courses</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -55,11 +52,11 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>📚 LearnHub</h1>
+              <h1>📚 Trinity Courses</h1>
             </div>
             <div class="content">
-              <h2>Welcome to LearnHub, ${name}!</h2>
-              <p>Thank you for registering with LearnHub. To complete your registration and start your learning journey, please verify your email address.</p>
+              <h2>Welcome to Trinity Courses, ${name}!</h2>
+              <p>Thank you for registering with Trinity Courses. To complete your registration and start your learning journey, please verify your email address.</p>
               
               <p>Click the button below to verify your email:</p>
               <a href="${verificationUrl}" class="button">Verify Email Address</a>
@@ -69,10 +66,10 @@ class EmailService {
               
               <p><strong>This verification link will expire in 24 hours.</strong></p>
               
-              <p>If you didn't create an account with LearnHub, please ignore this email.</p>
+              <p>If you didn't create an account with Trinity Courses, please ignore this email.</p>
             </div>
             <div class="footer">
-              <p>&copy; 2024 LearnHub. All rights reserved.</p>
+              <p>&copy; 2025 Trinity Courses. All rights reserved.</p>
               <p>This is an automated email. Please do not reply.</p>
             </div>
           </div>
@@ -82,7 +79,7 @@ class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: "Verify Your Email Address - LearnHub",
+      subject: "Verify Your Email Address - Trinity Courses",
       html,
     })
   }
@@ -95,7 +92,7 @@ class EmailService {
       <html>
         <head>
           <meta charset="utf-8">
-          <title>Reset Your Password - LearnHub</title>
+          <title>Reset Your Password - Trinity Courses</title>
           <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -109,12 +106,12 @@ class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>📚 LearnHub</h1>
+              <h1>📚 Trinity Courses</h1>
             </div>
             <div class="content">
               <h2>Password Reset Request</h2>
               <p>Hello ${name},</p>
-              <p>We received a request to reset your password for your LearnHub account.</p>
+              <p>We received a request to reset your password for your Trinity Coursesaccount.</p>
               
               <p>Click the button below to reset your password:</p>
               <a href="${resetUrl}" class="button">Reset Password</a>
@@ -132,7 +129,7 @@ class EmailService {
               </div>
             </div>
             <div class="footer">
-              <p>&copy; 2024 LearnHub. All rights reserved.</p>
+              <p>&copy; 2025 Trinity Courses. All rights reserved.</p>
               <p>This is an automated email. Please do not reply.</p>
             </div>
           </div>
@@ -142,7 +139,7 @@ class EmailService {
 
     return this.sendEmail({
       to: email,
-      subject: "Reset Your Password - LearnHub",
+      subject: "Reset Your Password - Trinity Courses",
       html,
     })
   }

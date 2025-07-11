@@ -86,7 +86,7 @@ useEffect(() => {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-2xl font-bold text-white">
             <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-            LearnHub
+            Trinity Courses
           </Link>
         </div>
 
@@ -179,15 +179,6 @@ useEffect(() => {
               </p>
             </div>
 
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
-              <p className="text-xs text-gray-600 text-center">
-                <strong>Demo Admin Login:</strong>
-                <br />
-                Email: admin@learnhub.com
-                <br />
-                Password: admin123
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

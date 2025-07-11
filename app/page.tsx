@@ -200,7 +200,7 @@ export default function LandingPage() {
       <section className="py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">Why Choose LearnHub?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-black mb-4">Why Choose Trinity Courses?</h2>
             <p className="text-xl text-gray-600">Everything you need to succeed in your learning journey</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -267,7 +267,7 @@ export default function LandingPage() {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center mb-4">
                 <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-                <h3 className="text-2xl font-bold">LearnHub</h3>
+                <h3 className="text-2xl font-bold">Trinity Courses</h3>
               </div>
               <p className="text-gray-400 mb-4">
                 Empowering learners worldwide with high-quality, accessible education. Master new skills and advance
@@ -311,7 +311,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 LearnHub. All rights reserved.</p>
+            <p>&copy; 2024 Trinity Courses. All rights reserved.</p>
           </div>
         </div>
       </footer>
