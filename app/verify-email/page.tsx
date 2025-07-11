@@ -83,7 +83,7 @@ export default function VerifyEmailPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-3xl font-bold text-gray-900 hover:text-red-600 transition-colors">
             <BookOpen className="w-10 h-10 mr-3 text-red-500" />
-            LearnHub
+            Trinity Courses
           </Link>
         </div>
 

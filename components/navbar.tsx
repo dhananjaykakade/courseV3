@@ -30,7 +30,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center text-xl font-bold">
           <BookOpen className="w-6 h-6 mr-2 text-red-500" />
-          LearnHub
+          Trinity Courses
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">

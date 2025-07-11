@@ -8,7 +8,7 @@ import Script from "next/script"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "LearnHub - Mobile Course Platform",
+  title: "Trinity Courses - Mobile Course Platform",
   description: "Learn on the go with our comprehensive mobile course platform",
 }
 
