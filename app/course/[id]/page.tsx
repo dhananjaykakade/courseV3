@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, Circle, Clock, DollarSign, Play, FileText, Download } from "lucide-react"
+import { CheckCircle, Circle, Clock, IndianRupee , Play, FileText, Download } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { loadRazorpay } from "@/lib/utils/razorpay"; // Ensure this path is correct
-
+import { Footer } from "@/components/footer"
+import Image from "next/image"
+import Link from "next/link"
 
 interface Course {
   id: string
@@ -45,6 +47,14 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
   const [currentMilestone, setCurrentMilestone] = useState(0)
   const [isEnrolling, setIsEnrolling] = useState(false)
+
+  const getYouTubeVideoId = (url: string): string => {
+  const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  const match = url.match(regExp)
+  return match && match[1].length === 11 ? match[1] : ""
+}
+
+
 
   useEffect(() => {
     if (loading) return // Wait for auth to load
@@ -257,16 +267,27 @@ const handleEnroll = async () => {
           </div>
         )
       case "video":
-        const videoData = content.data as { title: string; url: string }
-        return (
-          <div className="mb-6">
-            <h4 className="font-medium mb-2 flex items-center">
-              <Play className="h-4 w-4 mr-2" />
-              {videoData.title}
-            </h4>
-            <VideoPlayer src={videoData.url} />
-          </div>
-        )
+          const videoData = content.data as { title: string; url: string }
+  const videoId = getYouTubeVideoId(videoData.url)
+
+  return (
+    <div className="mb-6">
+      <h4 className="font-medium mb-2 flex items-center">
+        <Play className="h-4 w-4 mr-2" />
+        {videoData.title}
+      </h4>
+      <div className="aspect-video w-full rounded-lg overflow-hidden">
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&controls=1&showinfo=0`}
+          title={videoData.title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    </div>
+  )
       case "pdf":
         const pdfData = content.data as { title: string; url: string }
         return (
@@ -343,15 +364,15 @@ const handleEnroll = async () => {
                 </div>
                 {!course.isFree && (
                   <div className="flex items-center text-sm text-gray-500">
-                    <DollarSign className="h-4 w-4 mr-1" />
-                    <span>${course.price}</span>
+                    <IndianRupee/>
+                    <span className="text-green-500">{course.price}</span>
                   </div>
                 )}
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <Badge variant={course.isFree ? "secondary" : "destructive"}>
-                  {course.isFree ? "Free" : `$${course.price}`}
+                  {course.isFree ? "Free" : `₹${course.price}`}
                 </Badge>
                 {course.isPurchased && <Badge variant="default">Enrolled</Badge>}
               </div>
@@ -374,7 +395,7 @@ const handleEnroll = async () => {
 
               {!course.isPurchased ? (
                 <Button className="w-full" onClick={handleEnroll} disabled={isEnrolling}>
-                  {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for $${course.price}`}
+                  {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for ₹${course.price}`}
                 </Button>
               ) : (
                 <div className="space-y-4">
@@ -468,15 +489,28 @@ const handleEnroll = async () => {
               <p className="text-gray-600 mb-4">
                 {course.isFree
                   ? "This course is free! Enroll now to start learning."
-                  : `Enroll for $${course.price} to access all course materials and milestones.`}
+                  : `Enroll for ₹${course.price} to access all course materials and milestones.`}
               </p>
               <Button onClick={handleEnroll} disabled={isEnrolling}>
-                {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for $${course.price}`}
+                {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for ₹${course.price}`}
               </Button>
+              {/* show secure by razorpay payments message */}
+              <div className="mt-4">
+                <Image
+                  src="/razorpay-logo.png"
+                  alt="Razorpay Secure"
+                  width={100}
+                  height={30}
+                  className="object-contain mx-auto"
+                />
+                <span className="text-xs text-gray-500">100% Secure Payments powered by Razorpay</span>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
+
+      <Footer/>
     </div>
   )
 }
