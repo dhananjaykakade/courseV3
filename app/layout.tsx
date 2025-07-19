@@ -70,15 +70,55 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {/* ✅ Google AdSense Script */}
+          <head>
+        {/* Meta Tags */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="English" />
+        <meta name="theme-color" content="#FF0000" />
+
+        {/* Favicon and PWA */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* Google AdSense */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9047638897398182"
           crossOrigin="anonymous"
-          
-          />
-          </head>
+        />
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-0W7HZG9MF0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-0W7HZG9MF0');
+          `}
+        </Script>
+
+        {/* Structured Data - JSON-LD */}
+        <Script id="ld-json-org" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Trinity Courses",
+            url: "https://courses.trinityconsultancy.tech",
+            logo: "https://courses.trinityconsultancy.tech/favicon.png",
+            sameAs: [
+              "https://trinityconsultancy.tech",
+              "https://www.linkedin.com/company/trinityconsultancy"
+            ]
+          })}
+        </Script>
+      </head>
       <body className={inter.className}>
         {process.env.NODE_ENV === "production" && (
           <Script
