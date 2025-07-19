@@ -7,6 +7,8 @@ import { BookOpen, Play, Users, Clock, Award, Star } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
+
 
 import { useEffect, useState } from "react"
 
@@ -254,60 +256,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center mb-4">
-                <BookOpen className="w-8 h-8 mr-2 text-red-500" />
-                <h3 className="text-2xl font-bold">Trinity Courses</h3>
-              </div>
-              <p className="text-gray-400 mb-4">
-                Empowering learners worldwide with high-quality, accessible education. Master new skills and advance
-                your career with our expert-led courses.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/home" className="hover:text-red-500">
-                    Courses
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/about" className="hover:text-red-500">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="hover:text-red-500">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/privacy" className="hover:text-red-500">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="hover:text-red-500">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Trinity Courses. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+ <Footer />
     </div>
   )
 }

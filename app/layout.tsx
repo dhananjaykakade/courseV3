@@ -10,7 +10,12 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Trinity Courses - Mobile Course Platform",
   description: "Learn on the go with our comprehensive mobile course platform",
+    icons: {
+    icon: "/favicon.png", // or /favicon.svg, /favicon.png
+  },
 }
+
+
 
 export default function RootLayout({
   children,
