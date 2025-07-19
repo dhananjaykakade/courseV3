@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { BookOpen } from "lucide-react"
 
 export const Footer = () => {
   return (
@@ -12,7 +11,7 @@ export const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
-              <BookOpen className="w-8 h-8 mr-2 text-red-500" />
+<img src="/favicon.png" alt="Trinity Courses Logo" className="w-8 h-8 mr-2" />   
               <h3 className="text-2xl font-bold">Trinity Courses</h3>
             </div>
             <p className="text-black-400 mb-4">
