@@ -29,8 +29,9 @@ export function Navbar() {
     <header className="bg-black text-white p-4 border-b border-gray-800 shadow-sm">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link href="/" className="flex items-center text-xl font-bold">
-          <BookOpen className="w-6 h-6 mr-2 text-red-500" />
-          Trinity Courses
+
+        <img src="/favicon.png" alt="Trinity Courses Logo" className="w-8 h-8 mr-2" />         
+         Trinity Courses
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">

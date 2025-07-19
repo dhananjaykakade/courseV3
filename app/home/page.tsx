@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Clock, DollarSign, CheckCircle, AlertCircle, Search, Filter } from "lucide-react"
+import { Clock, IndianRupee, CheckCircle, AlertCircle, Search, Filter } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
+import { Footer } from "@/components/footer"
+
 
 interface Course {
   id: string
@@ -310,7 +312,7 @@ export default function HomePage() {
                         variant={course.isFree ? "secondary" : "destructive"}
                         className={course.isFree ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}
                       >
-                        {course.isFree ? "Free" : `$${course.price}`}
+                        {course.isFree ? "Free" : `Premium`}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -327,8 +329,8 @@ export default function HomePage() {
                       </div>
                       {!course.isFree && (
                         <div className="flex items-center">
-                          <DollarSign className="h-4 w-4 mr-1" />
-                          <span>${course.price}</span>
+                          <IndianRupee className="h-4 w-4 mr-1" />
+                          <span className="text-red-500">{course.price}</span>
                         </div>
                       )}
                     </div>
@@ -359,6 +361,7 @@ export default function HomePage() {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   )
 }
