@@ -136,7 +136,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center text-2xl font-bold text-black">
-              <BookOpen className="w-8 h-8 mr-2 text-red-500" />
+        <img src="/favicon.png" alt="Trinity Courses Logo" className="w-8 h-8 mr-2" />         
+
               Trinity Courses
             </Link>
           </div>

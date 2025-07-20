@@ -82,7 +82,7 @@ export default function VerifyEmailPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-3xl font-bold text-gray-900 hover:text-red-600 transition-colors">
-            <BookOpen className="w-10 h-10 mr-3 text-red-500" />
+        <img src="/favicon.png" alt="Trinity Courses Logo" className="w-8 h-8 mr-2" />         
             Trinity Courses
           </Link>
         </div>
