@@ -19,11 +19,6 @@ export function Navbar() {
   const { user, logout, loading } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login")
-    }
-  }, [user, loading, router])
 
   return (
     <header className="bg-black text-white p-4 border-b border-gray-800 shadow-sm">

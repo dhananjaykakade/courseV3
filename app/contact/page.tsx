@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle } from "lucide-react"
+import { Footer } from "@/components/footer"
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" })
@@ -86,9 +87,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <footer className="bg-black text-gray-400 text-center py-6 text-sm">
-        © {new Date().getFullYear()} Trinity Courses. All rights reserved.
-      </footer>
+<Footer/>
     </div>
   )
 }

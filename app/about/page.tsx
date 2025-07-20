@@ -2,6 +2,7 @@
 
 import { Navbar } from "@/components/navbar"
 import Image from "next/image"
+import { Footer } from "@/components/footer"
 
 export default function AboutPage() {
   return (
@@ -50,9 +51,7 @@ export default function AboutPage() {
 
 
       {/* Footer */}
-      <footer className="bg-black text-gray-400 text-center py-6 text-sm">
-        © {new Date().getFullYear()} Trinity Courses. All rights reserved.
-      </footer>
+<Footer/>
     </div>
   )
 }
