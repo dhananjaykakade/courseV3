@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, Circle, Clock, IndianRupee , Play, FileText, Download } from "lucide-react"
+import { CheckCircle, Circle, Clock, IndianRupee , Play, FileText, Download,Loader2 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/lib/context/auth-context"
 import { VideoPlayer } from "@/components/video-player"
@@ -47,6 +47,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const [isLoading, setIsLoading] = useState(true)
   const [currentMilestone, setCurrentMilestone] = useState(0)
   const [isEnrolling, setIsEnrolling] = useState(false)
+  const [isMarking, setIsMarking] = useState(false);
+
 
   const getYouTubeVideoId = (url: string): string => {
   const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
@@ -69,8 +71,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
   const fetchCourse = async () => {
     try {
-      console.log("Fetching course:", params.id)
 
+      
       const url = `/api/courses/${params.id}`
       const headers: any = {}
 
@@ -82,11 +84,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           headers,
           credentials: "include",
          })
-        console.log("Progress response status:", progressResponse.status)
 
         if (progressResponse.ok) {
           const progressData = await progressResponse.json()
-          console.log("Progress data:", progressData)
 
           if (progressData.success) {
             setCourse(progressData.course)
@@ -98,11 +98,11 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
       // Fallback to regular course fetch
       const response = await fetch(url, { credentials: "include" })
-      console.log("Course response status:", response.status)
 
+      
       const data = await response.json()
-      console.log("Course data:", data)
 
+      
       if (data.success) {
         setCourse(data.course)
       } else {
@@ -122,8 +122,8 @@ const handleEnroll = async () => {
   setIsEnrolling(true);
 
   try {
-    console.log("Enrolling in course:", course.id);
 
+    
     if (course.price === 0) {
       // 🔓 Free course enrollment
       const response = await fetch(`/api/courses/${course.id}/enroll`, {
@@ -132,8 +132,8 @@ const handleEnroll = async () => {
       });
 
       const data = await response.json();
-      console.log("Free course enroll response:", data);
 
+      
       if (data.success) {
         alert("Successfully enrolled in course!");
         fetchCourse();
@@ -148,8 +148,8 @@ const handleEnroll = async () => {
       });
 
       const data = await response.json();
-      console.log("Paid course enroll response:", data);
 
+      
       if (!data.success) {
         alert(data.message || "Payment initiation failed");
         return;
@@ -217,9 +217,9 @@ const handleEnroll = async () => {
 
   const handleMilestoneComplete = async (milestoneId: string) => {
     if (!user || !course) return
+  setIsMarking(true);
 
     try {
-      console.log("Marking milestone complete:", milestoneId)
 
       const response = await fetch(`/api/courses/${course.id}/progress`, {
         method: "POST",
@@ -227,9 +227,7 @@ const handleEnroll = async () => {
         body: JSON.stringify({ milestoneId }),
       })
 
-      console.log("Progress response status:", response.status)
       const data = await response.json()
-      console.log("Progress response data:", data)
 
       if (data.success) {
         // Update local state
@@ -255,6 +253,9 @@ const handleEnroll = async () => {
     } catch (error) {
       console.error("Error updating progress:", error)
       alert("Failed to update progress")
+    }
+    finally {
+      setIsMarking(false);
     }
   }
 
@@ -456,14 +457,28 @@ const handleEnroll = async () => {
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <CardTitle>{course.milestones[currentMilestone].title}</CardTitle>
-                      {!course.milestones[currentMilestone].isCompleted && (
-                        <Button
-                          onClick={() => handleMilestoneComplete(course.milestones[currentMilestone].id)}
-                          size="sm"
-                        >
-                          Mark Complete
-                        </Button>
-                      )}
+                      {/* add loader and disable the button while marking  */}
+
+{!course.milestones[currentMilestone].isCompleted && (
+  <Button
+    onClick={() => handleMilestoneComplete(course.milestones[currentMilestone].id)}
+    size="sm"
+    disabled={isMarking}
+  >
+    {isMarking ? (
+      <>
+        <Loader2 className="animate-spin h-4 w-4 mr-2" />
+        Marking...
+      </>
+    ) : (
+      <>
+        <CheckCircle className="h-4 w-4 mr-2" />
+        Mark as Completed
+      </>
+    )}
+  </Button>
+)}
+
                     </div>
                   </CardHeader>
                   <CardContent>
