@@ -39,7 +39,9 @@ export const loadRazorpay = (): Promise<boolean> => {
  export async function initiatePayment(
   userId: string,
   courseId: string,
-  amountInRupees: number
+  amountInRupees: number,
+  course: { id: string; title: string },
+  user: { id: string; email: string }
 ): Promise<{
   success: boolean;
   message?: string;
@@ -60,6 +62,12 @@ export const loadRazorpay = (): Promise<boolean> => {
       currency: 'INR',
       receipt: receiptId,
       payment_capture: true, // Auto-capture payment after success
+       notes: {
+    course_id: course.id,
+    course_title: course.title,
+    user_id: user.id,
+    user_email: user.email,
+  },
     });
 
     return {
@@ -68,6 +76,7 @@ export const loadRazorpay = (): Promise<boolean> => {
       amount: Number(order.amount),
       currency: order.currency,
       razorpayKeyId: process.env.RAZORPAY_KEY_ID,
+      message: "Payment initiated successfully",
     };
   } catch (error: any) {
     console.error("Error initiating payment:", error);

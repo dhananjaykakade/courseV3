@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     // 🔐 Initiate payment via Razorpay
-    const paymentResult = await initiatePayment(user.id, params.id, course.price);
+    const paymentResult = await initiatePayment(user.id, params.id, course.price ,course, user);
 
     if (!paymentResult.success) {
       return NextResponse.json({ success: false, message: paymentResult.message }, { status: 500 });

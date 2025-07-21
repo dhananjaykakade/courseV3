@@ -145,6 +145,13 @@ const handleEnroll = async () => {
       const response = await fetch(`/api/courses/${course.id}/enroll/paid`, {
         method: "POST",
         credentials: "include",
+        body: JSON.stringify({
+          userId: user.id,
+          courseId: course.id,
+          amountInRupees: course.price,
+          course: { id: course.id, title: course.title },
+          user: { id: user.id, email: user.email },
+        }),
       });
 
       const data = await response.json();
@@ -169,6 +176,8 @@ const handleEnroll = async () => {
         name: "Course Purchase",
         description: course.title,
         order_id: data.orderId,
+        
+
         handler: async function (response: any) {
   try {
     // Send payment details to backend for verification
@@ -201,10 +210,20 @@ const handleEnroll = async () => {
         theme: {
           color: "#6366f1",
         },
+        modal: {
+    ondismiss: () => {
+      alert("Payment popup closed by user.");
+    },
+        },
       }
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.open();
+      // after successful payment, console.log all the payment details send to razorpay
+      razorpay.on("payment ", function (response: any) {
+        console.log("Payment initiated successfully:", response);
+        alert("Payment failed. Please try again.");
+      });
     }
   } catch (error) {
     console.error("Error enrolling in course:", error);
