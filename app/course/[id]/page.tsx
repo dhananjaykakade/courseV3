@@ -130,7 +130,7 @@ const pollEnrollmentStatus = async (retries = 5, delay = 2000) => {
     const res = await fetch(`/api/courses/${course.id}`);
     const data = await res.json();
 
-    if (data.success && data.course.isPurchased) {
+    if (data.success) {
       alert("Enrollment successful!");
       fetchCourse();
       return;
