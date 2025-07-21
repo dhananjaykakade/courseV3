@@ -506,9 +506,9 @@ const handleEnroll = async () => {
                   ? "This course is free! Enroll now to start learning."
                   : `Enroll for ₹${course.price} to access all course materials and milestones.`}
               </p>
-              <Button onClick={handleEnroll} disabled={isEnrolling}>
+              {/* <Button onClick={handleEnroll} disabled={isEnrolling}>
                 {isEnrolling ? "Enrolling..." : course.isFree ? "Enroll for Free" : `Enroll for ₹${course.price}`}
-              </Button>
+              </Button> */}
               {/* show secure by razorpay payments message */}
               <div className="mt-4">
                 <Image
