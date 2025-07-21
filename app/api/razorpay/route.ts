@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const paymentDetails = event.payload.payment.entity;
     console.log('Payment captured:', paymentDetails);
     emailService.sendEmail({
-        to: 'noreply.trinityconsultancy@gmail.com',
+        to: process.env.CONTACT_RECEIVER || 'noreply.trinityconsultancy@gmail.com',
         subject: 'Payment Received',
         html: `
             <h1>Payment Received</h1>
