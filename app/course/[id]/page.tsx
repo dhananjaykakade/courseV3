@@ -190,43 +190,40 @@ const pollEnrollmentStatus = async (retries = 5, delay = 2000) => {
           description: course.title,
           order_id: data.orderId,
 
-          handler: async function (response: any) {
-            if (process.env.NODE_ENV === "production") {
-              {
-                alert("Payment successful! Verifying...");
-              await pollEnrollmentStatus();
-                alert("Payment successful! Verifying enrollment...");
-              }
-            } else {
-              try {
-                // Send payment details to backend for verification
-                const verifyRes = await fetch(
-                  `/api/courses/${course.id}/enroll/verify-payment`,
-                  {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      razorpay_payment_id: response.razorpay_payment_id,
-                      razorpay_order_id: response.razorpay_order_id,
-                      razorpay_signature: response.razorpay_signature,
-                    }),
-                  }
-                );
-                const verifyData = await verifyRes.json();
-                if (verifyData.success) {
-                  alert("Payment verified and enrollment successful!");
-                  fetchCourse(); // Refresh course data to reflect enrollment
-                } else {
-                  alert(verifyData.message || "Payment verification failed");
-                }
-              } catch (err) {
-                alert("Something went wrong during payment verification.");
-              }
-            }
+handler: async function (response: any) {
+  if (process.env.NODE_ENV === "production") {
+    alert("Payment successful! Verifying enrollment...");
+    await pollEnrollmentStatus();
+  } else {
+    try {
+      const verifyRes = await fetch(
+        `/api/courses/${course.id}/enroll/verify-payment`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        }
+      );
+      const verifyData = await verifyRes.json();
+      if (verifyData.success) {
+        alert("Payment verified and enrollment successful!");
+        fetchCourse(); 
+      } else {
+        alert(verifyData.message || "Payment verification failed");
+      }
+    } catch (err) {
+      alert("Something went wrong during payment verification.");
+    }
+  }
+}
+,
           prefill: {
             email: user.email,
           },
