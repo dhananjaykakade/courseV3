@@ -149,8 +149,8 @@ const pollEnrollmentStatus = async (retries = 5, delay = 2000) => {
         const data = await response.json();
 
         if (data.success) {
+          await fetchCourse();
           alert("Successfully enrolled in course!");
-          fetchCourse();
         } else {
           alert(data.message || "Failed to enroll in course");
         }
