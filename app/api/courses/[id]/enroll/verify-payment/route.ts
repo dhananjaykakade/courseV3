@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     // Check if already enrolled
     const isAlreadyEnrolled = await supabaseDb.isUserEnrolled(user.id, params.id);
     if (isAlreadyEnrolled) {
-      return NextResponse.json({ success: false, message: "Already enrolled in this course" }, { status: 400 });
+      return NextResponse.json({ success: true, message: "Payment verified and enrolled in this course" });
     }
 
     // Mark user as enrolled in the course
