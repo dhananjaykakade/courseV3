@@ -609,6 +609,17 @@ handler: async function (response: any) {
                   100% Secure Payments powered by Razorpay
                 </span>
               </div>
+
+              <p className="text-xs text-gray-500 italic mt-4">
+                Note: All courses are non-refundable. For any issues, contact{" "}
+                <a
+                  href="mailto:trinityconsultancyofficial@gmail.com"
+                  className="text-red-600 underline"
+                >
+                  trinityconsultancyofficial@gmail.com
+                </a>
+              </p>
+
             </CardContent>
           </Card>
         )}

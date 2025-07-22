@@ -361,7 +361,14 @@ export default function HomePage() {
           </div>
         )}
       </div>
-      <Footer/>
+                    {/* add tip the courses are non refundable in case of failure contact trinityconsultancyofficial@gmail.com  in very small font and italic style*/}
+      <div className="text-center text-xs text-gray-500 italic mt-8 mb-8">
+        Note: All courses are non-refundable. In case of any issues, please contact us at{" "}
+        <a href="mailto:trinityconsultancyofficial@gmail.com" className="text-red-600 underline">
+          trinityconsultancyofficial@gmail.com
+        </a>
+      </div>
+      <Footer />
     </div>
   )
 }
