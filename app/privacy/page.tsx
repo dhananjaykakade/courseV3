@@ -13,6 +13,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           At <strong>Trinity Consultancy</strong>, we value your privacy and are committed to protecting your personal data. This Privacy Policy outlines how we collect, use, and safeguard your information when you use our website, services, or products.
         </p>
+        <p className="text-gray-500 text-xs mb-6">Last updated: July 20, 2025</p>
 
         <h2 className="text-lg font-semibold mt-8 mb-2">1. Information We Collect</h2>
         <ul className="list-disc list-inside mb-4">
