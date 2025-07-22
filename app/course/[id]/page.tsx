@@ -443,7 +443,7 @@ handler: async function (response: any) {
                   <img
                     src={course.image || "/placeholder.svg"}
                     alt={course.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-fill"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "/placeholder.svg?height=200&width=300";
