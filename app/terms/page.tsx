@@ -13,7 +13,10 @@ export default function TermsOfService() {
         <p className="mb-4">
           Welcome to <strong>Trinity Courses</strong>. By accessing or using our platform, you agree to be bound by these Terms of Service, our{" "}
           <a href="/privacy-policy" className="text-red-600 underline">Privacy Policy</a>, and any other applicable policies.
+          <br />          
+          If you do not agree with these terms, please do not use our services.
         </p>
+        <p className="text-gray-500 text-xs mb-6">Last updated: July 20, 2025</p>
 
         <h2 className="text-lg font-semibold mt-8 mb-2">1. Eligibility</h2>
         <p className="mb-4">

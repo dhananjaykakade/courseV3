@@ -13,6 +13,7 @@ export default function RefundPolicy() {
         <p className="mb-4">
           At <strong>Trinity Courses</strong>, we are committed to providing high-quality educational content. However, all payments made on our platform are subject to our refund policy as governed by Razorpay.
         </p>
+        <p className="text-gray-500 text-xs mb-6">Last updated: July 20, 2025</p>
 
         <h2 className="text-lg font-semibold mt-8 mb-2">Eligibility for Refunds</h2>
         <p className="mb-4">
