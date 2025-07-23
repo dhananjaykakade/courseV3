@@ -40,6 +40,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       payment_id: razorpay_payment_id,
       order_id: razorpay_order_id,
       payment_verified: true,
+      amount: body.amount, // Assuming amount is passed in the request body
+      currency: body.currency, // Assuming currency is passed in the request body
     });
 
     if (!enrollResult.success) {

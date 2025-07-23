@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { emailService } from '@/lib/services/email';
 import { supabaseDb } from '@/lib/services/supabase-database';
+import { parse } from 'path';
 
 export async function POST(req: Request) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET!;
@@ -78,14 +79,18 @@ export async function POST(req: Request) {
     // save the payment details to your database or perform any other necessary actions here
    const isAlreadyEnrolled = await supabaseDb.isUserEnrolled(paymentDetails.notes.user_id, paymentDetails.notes.course_id);
     if (isAlreadyEnrolled) {
-      console.log('User is already enrolled in the course');
       return NextResponse.json({ success: true, message: 'User already enrolled' });
     }
+    console.log('Payment details:', paymentDetails);
     const enrollResult = await supabaseDb.enrollUserInCourse(paymentDetails.notes.user_id, paymentDetails.notes.course_id, {
       payment_id: paymentDetails.id,
       order_id: paymentDetails.order_id,
       payment_verified: true,
+      amount: parseFloat((paymentDetails.amount / 100).toFixed(2)), // Convert to float and format
+      currency: paymentDetails.currency,
+
     });
+    console.log('Enrollment result:', enrollResult);
     if (!enrollResult.success) {
       return NextResponse.json({ success: false, message: 'Failed to enroll user in course' }, { status: 500 });
     }

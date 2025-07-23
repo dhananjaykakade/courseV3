@@ -428,6 +428,11 @@ export default function AdminDashboard() {
           <TabsList>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+{/* give button to render users table at admin/users route*/}
+
+            <Button onClick={() => router.push("/admin/users")} className="ml-4">
+              <Users className="mr-2" /> Manage Users
+            </Button>
           </TabsList>
 
           <TabsContent value="courses" className="space-y-6">
