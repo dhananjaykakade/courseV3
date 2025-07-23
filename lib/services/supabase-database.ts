@@ -1,5 +1,7 @@
 import { createServerClient, createAdminClient } from "@/lib/supabase/client"
 import type { User, VerificationToken } from "@/lib/types/auth"
+import { Currency } from "lucide-react"
+
 
 
 class SupabaseDatabaseService {
@@ -544,6 +546,7 @@ class SupabaseDatabaseService {
         course_id: courseId,
         enrolled_at: new Date().toISOString(),
         progress: 0,
+        currency:'INR'
       };
 
       // Include payment columns if they exist in schema; Supabase will ignore unknown ones
@@ -551,17 +554,12 @@ class SupabaseDatabaseService {
       insertData.order_id = paymentInfo.order_id;
       insertData.payment_verified = paymentInfo.payment_verified;
        insertData.amount = paymentInfo.amount;
-      insertData.currency = paymentInfo.currency;
 
       const { data, error } = await this.adminClient
         .from("user_enrollments")
         .insert(insertData)
         .select()
         .single();
-
-      if (data) {
-        console.log("User enrolled successfully:", data);
-      }
 
       if (error) {
         // Ignore duplicate enrolment error (unique constraint) if any
@@ -746,6 +744,84 @@ class SupabaseDatabaseService {
     }
   }
 
+
+  // create a function to get all the paid courses
+  async getAllPaidCourses(): Promise<{id: string ,title:string,price:number,created_at: Date}[]> {
+    try {
+      const { data, error } = await this.adminClient
+        .from("courses")
+        .select("*")
+        .eq("is_free", false)
+
+      if (error) {
+        console.error("Supabase get all paid courses error:", error)
+        return []
+      }
+
+      return data.map(this.mapCourseFromDb)
+    } catch (error) {
+      console.error("Error getting all paid courses:", error)
+      return []
+    }
+  }
+
+  // create a function to give access to paid courses for specific user
+
+  async giveAccessToPaidCourse(userEmail: string, courseId: string, amount: number): Promise<boolean> {
+    try {
+      // Get user ID by email
+      const { data: user, error: userError } = await this.adminClient
+        .from("users")
+        .select("id")
+        .eq("email", userEmail.toLowerCase())
+        .single()
+      if (userError || !user) {
+        console.error("Supabase get user by email error:", userError)
+        return false
+      }
+      const userId = user.id
+
+      // check if already enrolled to course 
+      const { data: existingEnrollment, error: enrollmentError } = await this.adminClient
+        .from("user_enrollments")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("course_id", courseId)
+        .single()
+
+      if (enrollmentError || existingEnrollment) {
+        console.error(`error checking enrollment: ${enrollmentError || existingEnrollment}`)
+        return false
+      }
+
+      const { data, error } = await this.adminClient
+        .from("user_enrollments")
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          enrolled_at: new Date().toISOString(),
+          progress: 0,
+          payment_verified: true, // Assuming access is granted without payment verification
+          amount: amount || 0, // Optional amount, can be 0 if not applicable
+          currency: "rupees", // Default currency, can be changed as needed
+          payment_id:'autoaccessbyadmin',
+          order_id: 'autoaccessbyadmin',
+
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error("Supabase give access to paid course error:", error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error giving access to paid course:", error)
+      return false
+    }
+  }
 
   // Get database stats
   async getStats(): Promise<{ users: number; courses: number; tokens: number }> {
