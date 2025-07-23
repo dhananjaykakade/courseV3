@@ -533,8 +533,8 @@ class SupabaseDatabaseService {
       payment_id: string;
       order_id: string;
       payment_verified: boolean;
-      amount?: number;
-      currency?: string;
+      amount: number;
+      currency: string;
     }
   ): Promise<{ success: boolean; message?: string }> {
     try {
@@ -550,14 +550,18 @@ class SupabaseDatabaseService {
       insertData.payment_id = paymentInfo.payment_id;
       insertData.order_id = paymentInfo.order_id;
       insertData.payment_verified = paymentInfo.payment_verified;
-      if (paymentInfo.amount !== undefined) insertData.amount = paymentInfo.amount;
-      if (paymentInfo.currency !== undefined) insertData.currency = paymentInfo.currency;
+       insertData.amount = paymentInfo.amount;
+      insertData.currency = paymentInfo.currency;
 
       const { data, error } = await this.adminClient
         .from("user_enrollments")
         .insert(insertData)
         .select()
         .single();
+
+      if (data) {
+        console.log("User enrolled successfully:", data);
+      }
 
       if (error) {
         // Ignore duplicate enrolment error (unique constraint) if any
@@ -722,6 +726,25 @@ class SupabaseDatabaseService {
   }
   
 
+  // create a function to update the users role
+  async updateUserRole(userId: string, newRole: string): Promise<User | null> {
+    try {
+      const { data, error } = await this.adminClient
+        .from("users")
+        .update({ role: newRole })
+        .eq("id", userId)
+        .select()
+
+        if (error) {
+        console.error("Supabase update user role error:", error)
+        return null
+      }
+      return this.mapUserFromDb(data)
+    } catch (error) {
+      console.error("Error updating user role:", error)
+      return null
+    }
+  }
 
 
   // Get database stats
