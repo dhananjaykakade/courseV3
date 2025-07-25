@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://courses.trinityconsultancy.tech
+
+# Sitemaps
+Sitemap: https://courses.trinityconsultancy.tech/sitemap.xml
