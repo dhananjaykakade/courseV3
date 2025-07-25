@@ -1,11 +1,11 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { AuthProvider } from "@/lib/context/auth-context"
-import Script from "next/script"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/lib/context/auth-context";
+import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Trinity Courses - Learn No-Code & AI Skills with Experts",
@@ -21,10 +21,21 @@ export const metadata: Metadata = {
     "LMS",
     "learn automation",
     "online education",
-    "Trinity Consultancy"
+    "Trinity Consultancy",
+    "AI courses",
+    "no-code platforms",
+    "personal branding",
+    "career growth",
+    "online courses",
+    "hands-on tutorials",
+    "expert-led courses",
+    "industry-relevant skills",
+    "learn AI",
   ],
   metadataBase: new URL("https://courses.trinityconsultancy.tech"),
-  authors: [{ name: "Trinity Consultancy", url: "https://trinityconsultancy.tech" }],
+  authors: [
+    { name: "Trinity Consultancy", url: "https://trinityconsultancy.tech" },
+  ],
   creator: "Trinity Consultancy",
   publisher: "Trinity Courses",
   alternates: {
@@ -38,7 +49,7 @@ export const metadata: Metadata = {
     siteName: "Trinity Courses",
     images: [
       {
-        url: "/opengraph-image.png",
+        url: "/favicon.png",
         width: 1200,
         height: 630,
         alt: "Trinity Courses - No-Code & AI Learning",
@@ -51,7 +62,7 @@ export const metadata: Metadata = {
     title: "Trinity Courses",
     description:
       "Master no-code platforms, automations, and AI growth strategies with expert-curated courses.",
-    images: ["/opengraph-image.png"],
+    images: ["/favicon.png"],
     site: "@trinitycourses", // Optional: if you have Twitter/X handle
   },
   icons: {
@@ -61,16 +72,14 @@ export const metadata: Metadata = {
   },
 };
 
-
-
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-          <head>
+      <head>
         {/* Meta Tags */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="index, follow" />
@@ -105,7 +114,11 @@ export default function RootLayout({
         </Script>
 
         {/* Structured Data - JSON-LD */}
-        <Script id="ld-json-org" type="application/ld+json" strategy="afterInteractive">
+        <Script
+          id="ld-json-org"
+          type="application/ld+json"
+          strategy="afterInteractive"
+        >
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
@@ -114,8 +127,8 @@ export default function RootLayout({
             logo: "https://courses.trinityconsultancy.tech/favicon.png",
             sameAs: [
               "https://trinityconsultancy.tech",
-              "https://www.linkedin.com/company/trinityconsultancy"
-            ]
+              "https://www.linkedin.com/company/trinityconsultancy",
+            ],
           })}
         </Script>
       </head>
@@ -138,8 +151,15 @@ export default function RootLayout({
             }}
           />
         )}
+        <script type="text/javascript">
+          var infolinks_pid = 3438583; var infolinks_wsid = 0;
+        </script>
+        <script
+          type="text/javascript"
+          src="http://resources.infolinks.com/js/infolinks_main.js"
+        ></script>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
-  )
+  );
 }
