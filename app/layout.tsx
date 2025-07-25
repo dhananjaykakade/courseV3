@@ -130,6 +130,7 @@ export default function RootLayout({
               "https://www.linkedin.com/company/trinityconsultancy",
             ],
           })}
+          <meta name="google-site-verification" content="pPOQchfHX0n1_yrfu00cyB49cQShRSaPtd1e1rQ7z6Y" />
         </Script>
       </head>
       <body className={inter.className}>
