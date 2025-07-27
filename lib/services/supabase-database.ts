@@ -751,7 +751,7 @@ class SupabaseDatabaseService {
       const { data, error } = await this.adminClient
         .from("courses")
         .select("*")
-        .eq("is_free", false)
+        .gt("price", 0)
 
       if (error) {
         console.error("Supabase get all paid courses error:", error)
