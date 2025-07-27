@@ -113,7 +113,6 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* Structured Data - JSON-LD */}
         <Script
           id="ld-json-org"
           type="application/ld+json"
