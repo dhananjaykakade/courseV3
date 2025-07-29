@@ -151,13 +151,18 @@ export default function RootLayout({
             }}
           />
         )}
-        <script type="text/javascript">
-          var infolinks_pid = 3438583; var infolinks_wsid = 0;
-        </script>
-        <script
-          type="text/javascript"
-          src="http://resources.infolinks.com/js/infolinks_main.js"
-        ></script>
+      <Script id="infolinks-config" strategy="beforeInteractive">
+        {`
+          var infolinks_pid = 3438583;
+          var infolinks_wsid = 0;
+        `}
+      </Script>
+
+      {/* Load Infolinks external script */}
+      <Script
+        src="http://resources.infolinks.com/js/infolinks_main.js"
+        strategy="beforeInteractive"
+      />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
